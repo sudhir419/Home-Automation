@@ -20,49 +20,12 @@
           }
           document.documentElement.setAttribute('data-theme', theme);
         } catch(e) {}
-
-        // If opened directly from files (file:// protocol), redirect to the running dev server or display instant launch
-        if (window.location.protocol === 'file:') {
-          // Attempt automatic redirect to the live local server
-          fetch('http://localhost:5173/', { mode: 'no-cors' }).then(function() {
-            window.location.href = 'http://localhost:5173/';
-          }).catch(function() {
-            // Server not detected yet; stay on page
-          });
-        }
       })();
     </script>
-    <script type="module" crossorigin src="./assets/index-CzVFfHgY.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-Dgq6s4A4.css">
+    <script type="module" crossorigin src="./assets/index-C25N-t_x.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-Coz2vu2f.css">
   </head>
   <body>
     <div id="root"></div>
-
-    <noscript>
-      <div style="padding: 2rem; text-align: center; font-family: sans-serif;">
-        <h2>Home Automation</h2>
-        <p>Please enable JavaScript or open <a href="http://localhost:5173/">http://localhost:5173/</a> to view your website.</p>
-      </div>
-    </noscript>
-
-    <script>
-      // Fallback banner for file:// protocol if browser restricts ES modules on local filesystem
-      window.addEventListener('DOMContentLoaded', function() {
-        setTimeout(function() {
-          var root = document.getElementById('root');
-          if (window.location.protocol === 'file:' && (!root || root.children.length === 0)) {
-            var banner = document.createElement('div');
-            banner.style.cssText = 'position:fixed;inset:0;background:#030712;color:#f8fafc;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:system-ui,-apple-system,sans-serif;z-index:999999;padding:24px;text-align:center;';
-            banner.innerHTML = '<div style="background:#0f172a;border:1px solid #10b981;border-radius:20px;padding:36px;max-width:540px;box-shadow:0 20px 50px rgba(0,0,0,0.8);">' +
-              '<div style="width:56px;height:56px;background:rgba(16,185,129,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;color:#10b981;font-size:28px;">⚡</div>' +
-              '<h2 style="margin:0 0 10px;font-size:24px;font-weight:600;color:#f8fafc;">Launch Home Automation</h2>' +
-              '<p style="color:#94a3b8;font-size:15px;line-height:1.6;margin:0 0 24px;">Your website server is live and ready with 1080p 3D residency animation!</p>' +
-              '<a href="http://localhost:5173/" style="display:inline-block;background:#10b981;color:#fff;text-decoration:none;font-weight:600;font-size:16px;padding:14px 32px;border-radius:9999px;box-shadow:0 4px 20px rgba(16,185,129,0.4);">Open Website (http://localhost:5173/)</a>' +
-              '</div>';
-            document.body.appendChild(banner);
-          }
-        }, 800);
-      });
-    </script>
   </body>
 </html>
