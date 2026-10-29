@@ -1,0 +1,18 @@
+{
+  "name": "Home Automation",
+  "short_name": "HomeAuto",
+  "description": "Bluetooth Smart Living System",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f5f0e8",
+  "theme_color": "#5c7a5e",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
