@@ -71,18 +71,17 @@ export default function CustomCursor() {
       // 1. Center dot follows mouse directly
       if (dotRef.current && isInsideWindow.current) {
         dotRef.current.style.transform = `translate3d(${mx}px, ${my}px, 0) translate(-50%, -50%) ${
-          isClicking ? 'scale(0.7)' : isHovered ? 'scale(1.3)' : 'scale(1)'
+          isClicking ? 'scale(0.75)' : isHovered ? 'scale(1.2)' : 'scale(1)'
         }`;
       }
 
-      // 2. Decreased circle follow speed:
-      // 0.18 interpolation rate gives a gentle, elegant, relaxed elastic trail
+      // 2. Outer circle/bubble moves a little slower behind the dot with elegant smooth easing
       if (ringRef.current && isInsideWindow.current) {
-        ringPos.current.x += (mx - ringPos.current.x) * 0.18;
-        ringPos.current.y += (my - ringPos.current.y) * 0.18;
+        ringPos.current.x += (mx - ringPos.current.x) * 0.15;
+        ringPos.current.y += (my - ringPos.current.y) * 0.15;
 
         ringRef.current.style.transform = `translate3d(${ringPos.current.x}px, ${ringPos.current.y}px, 0) translate(-50%, -50%) ${
-          isClicking ? 'scale(0.85)' : isHovered ? 'scale(1.4)' : 'scale(1)'
+          isClicking ? 'scale(0.85)' : isHovered ? 'scale(1.25)' : 'scale(1)'
         }`;
       }
 

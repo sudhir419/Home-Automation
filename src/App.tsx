@@ -10,11 +10,14 @@ import ToastContainer from './components/ToastContainer';
 import CustomCursor from './components/CustomCursor';
 import { useTheme } from './hooks/useTheme';
 import { useAppStore } from './store/appStore';
+import { apiClient } from './services/api/apiClient';
+import { showToast } from './components/ToastContainer';
 
 // Pages
 import DashboardPage from './pages/DashboardPage';
 import DevicesPage from './pages/DevicesPage';
 import RoomsPage from './pages/RoomsPage';
+import ElectricityPage from './pages/ElectricityPage';
 import LightingPage from './pages/LightingPage';
 import ClimatePage from './pages/ClimatePage';
 import EntertainmentPage from './pages/EntertainmentPage';
@@ -42,6 +45,26 @@ export default function App() {
     }
   }, [preferences.reducedMotion]);
 
+  // Real-time backend & hardware event notifications
+  useEffect(() => {
+    const unsubSchedule = apiClient.on('SCHEDULE_TRIGGERED', (payload) => {
+      showToast(`Schedule "${payload.name}" triggered (${payload.devicesTriggered} devices)`, 'info');
+    });
+
+    const unsubController = apiClient.on('CONTROLLER_STATUS', (payload) => {
+      if (payload.status === 'online') {
+        showToast('ESP32-WROOM-32 Controller Connected (Online)', 'success');
+      } else {
+        showToast('ESP32 Controller Disconnected (Offline)', 'warning');
+      }
+    });
+
+    return () => {
+      unsubSchedule();
+      unsubController();
+    };
+  }, []);
+
   return (
     <>
       {appStage === 'intro' && (
@@ -49,15 +72,19 @@ export default function App() {
       )}
 
       {appStage === 'residency3d' && (
-        <Residency3DView onBackToHome={() => setAppStage('dashboard')} />
+        <Residency3DView
+          onBackToHome={() => setAppStage('dashboard')}
+          onBackToIntro={() => setAppStage('intro')}
+        />
       )}
 
       {appStage === 'dashboard' && (
-        <AppShell>
+        <AppShell onOpen3D={() => setAppStage('residency3d')}>
           <Routes>
             <Route path="/" element={<DashboardPage />} />
             <Route path="/rooms" element={<RoomsPage />} />
             <Route path="/devices" element={<DevicesPage />} />
+            <Route path="/electricity" element={<ElectricityPage />} />
             <Route path="/lighting" element={<LightingPage />} />
             <Route path="/climate" element={<ClimatePage />} />
             <Route path="/entertainment" element={<EntertainmentPage />} />

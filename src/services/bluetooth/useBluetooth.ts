@@ -1,10 +1,11 @@
 // ============================================================
 // BLUETOOTH HOOK — React integration
-// Connects bluetoothService → appStore
+// Connects bluetoothService & backend API → appStore
 // ============================================================
 import { useCallback, useEffect, useRef } from 'react';
 import { bluetoothAdapter, buildCommand } from './bluetoothService';
 import { useAppStore } from '../../store/appStore';
+import { apiClient } from '../api/apiClient';
 
 export function useBluetooth() {
   const setBluetooth = useAppStore((s) => s.setBluetooth);
@@ -37,7 +38,23 @@ export function useBluetooth() {
       }
     });
 
-    return () => { unsubRef.current?.(); };
+    // Listen to real-time WebSocket state changes from centralized ESP32 backend
+    const unsubWs = apiClient.on('DEVICE_STATE_CHANGE', (payload) => {
+      if (payload.deviceId && payload.state) {
+        if (payload.state === 'pending') {
+          setPendingState(payload.deviceId, payload.pendingState || null);
+        } else if (payload.state === 'error') {
+          setDeviceError(payload.deviceId, payload.errorMessage || 'Hardware error');
+        } else {
+          setDeviceState(payload.deviceId, payload.state as 'on' | 'off');
+        }
+      }
+    });
+
+    return () => {
+      unsubRef.current?.();
+      unsubWs();
+    };
   }, []); // eslint-disable-line
 
   const scan = useCallback(async () => {
@@ -83,40 +100,80 @@ export function useBluetooth() {
 
   const sendDeviceCommand = useCallback(async (deviceId: string, action: 'on' | 'off', demoMode: boolean) => {
     const cmd = buildCommand(deviceId, action);
-    if (!cmd) {
-      addActivity({ category: 'device', level: 'warning', title: `No command mapped for device: ${deviceId}`, detail: null, isHardwareConfirmed: false });
-      return false;
-    }
 
-    if (demoMode || !bluetoothAdapter.isConnected()) {
-      // Demo: simulate success after delay
+    // 1. If in DEMO MODE: Simulate locally and optionally notify backend
+    if (demoMode) {
       setPendingState(deviceId, action === 'on' ? 'on' : 'off');
       await new Promise((r) => setTimeout(r, 600));
       setDeviceState(deviceId, action === 'on' ? 'on' : 'off');
       addActivity({
         category: 'device',
         level: 'info',
-        title: `[DEMO] ${cmd.trim()} executed`,
+        title: `[DEMO] ${cmd ? cmd.trim() : deviceId} executed`,
         detail: 'Simulated — no hardware confirmation',
         isHardwareConfirmed: false,
       });
+
+      // Async report to backend in background (demo mode)
+      apiClient.controlDevice(deviceId, action, true).catch(() => {});
       return true;
     }
 
+    // 2. REAL HARDWARE MODE: Connect to physical ESP32-WROOM-32 via Backend REST/MQTT
     setPendingState(deviceId, action === 'on' ? 'on' : 'off');
-    addActivity({ category: 'device', level: 'info', title: `Sending: ${cmd.trim()}`, detail: null, isHardwareConfirmed: false });
+    addActivity({
+      category: 'device',
+      level: 'info',
+      title: `Sending command: ${cmd ? cmd.trim() : `${deviceId} -> ${action}`}`,
+      detail: 'Transmitting via MQTT to ESP32-WROOM-32...',
+      isHardwareConfirmed: false,
+    });
 
     try {
-      await bluetoothAdapter.sendCommand(cmd);
+      // First attempt: Backend REST / MQTT API to centralized ESP32
+      const res = await apiClient.controlDevice(deviceId, action, false);
       setDeviceState(deviceId, action === 'on' ? 'on' : 'off');
+      addActivity({
+        category: 'device',
+        level: 'success',
+        title: `Hardware ACK: ${deviceId.toUpperCase()}`,
+        detail: `${res.message} (${res.executionTimeMs}ms)`,
+        isHardwareConfirmed: true,
+      });
       return true;
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e);
+    } catch (apiErr: any) {
+      // If direct Bluetooth is connected locally, try bluetoothAdapter fallback
+      if (bluetoothAdapter.isConnected() && cmd) {
+        try {
+          await bluetoothAdapter.sendCommand(cmd);
+          setDeviceState(deviceId, action === 'on' ? 'on' : 'off');
+          return true;
+        } catch (btErr: any) {
+          const msg = btErr instanceof Error ? btErr.message : String(btErr);
+          setDeviceError(deviceId, msg);
+          addActivity({ category: 'device', level: 'error', title: `Command failed: ${cmd.trim()}`, detail: msg, isHardwareConfirmed: false });
+          return false;
+        }
+      }
+
+      // Hardware failed or timed out
+      const msg = apiErr instanceof Error ? apiErr.message : String(apiErr);
       setDeviceError(deviceId, msg);
-      addActivity({ category: 'device', level: 'error', title: `Command failed: ${cmd.trim()}`, detail: msg, isHardwareConfirmed: false });
+      addActivity({ category: 'device', level: 'error', title: `Hardware Error: ${deviceId}`, detail: msg, isHardwareConfirmed: false });
       return false;
     }
   }, []);
 
-  return { scan, connect, disconnect, sendDeviceCommand, btState };
+  return {
+    status: btState.status,
+    deviceName: btState.deviceName,
+    deviceAddress: btState.deviceAddress,
+    errorMessage: btState.errorMessage,
+    lastConnectedAt: btState.lastConnectedAt,
+    isDemo: btState.isDemo,
+    scan,
+    connect,
+    disconnect,
+    sendDeviceCommand,
+  };
 }

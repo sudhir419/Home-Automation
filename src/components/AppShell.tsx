@@ -2,11 +2,12 @@
 // APP SHELL — Sidebar, top bar, mobile nav
 // ============================================================
 import { useState, useEffect } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, Link, useLocation } from 'react-router-dom';
 import {
   Home, Layers, Zap, Lightbulb, Wind, Thermometer, Tv,
   Calendar, Bluetooth, Activity, Settings, ChevronLeft,
-  ChevronRight, Menu, X, Sun, Moon, Bell, User,
+  ChevronRight, Menu, X, Sun, Moon, Bell, User, Gauge, Sparkles,
+  ArrowLeft,
 } from 'lucide-react';
 import { useTheme } from '../hooks/useTheme';
 import { useAppStore } from '../store/appStore';
@@ -20,6 +21,7 @@ const NAV_GROUPS = [
       { to: '/', icon: Home, label: 'Overview', exact: true },
       { to: '/rooms', icon: Layers, label: 'Rooms' },
       { to: '/devices', icon: Zap, label: 'All Devices' },
+      { to: '/electricity', icon: Gauge, label: 'Electricity Consumption' },
     ],
   },
   {
@@ -56,9 +58,10 @@ const BOTTOM_NAV = [
 
 interface ShellProps {
   children: React.ReactNode;
+  onOpen3D?: () => void;
 }
 
-export default function AppShell({ children }: ShellProps) {
+export default function AppShell({ children, onOpen3D }: ShellProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -153,10 +156,51 @@ export default function AppShell({ children }: ShellProps) {
 
       {/* === Desktop Top Bar === */}
       <header className={`topbar ${collapsed ? 'sidebar-collapsed' : ''}`}>
-        <div className="topbar-left">
+        <div className="topbar-left" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+          {location.pathname !== '/' && (
+            <Link
+              to="/"
+              className="btn btn-ghost btn-sm"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '4px 12px',
+                borderRadius: 'var(--radius-full)',
+                fontSize: 'var(--text-xs)',
+                fontWeight: 600,
+                color: 'var(--color-text-secondary)',
+                border: '1px solid var(--color-border)',
+                background: 'var(--color-surface)',
+              }}
+              title="Back to Home Overview"
+            >
+              <ArrowLeft size={14} />
+              <span>Back to Home</span>
+            </Link>
+          )}
           <span className="topbar-breadcrumb">{pageTitle}</span>
         </div>
         <div className="topbar-right">
+          {onOpen3D && (
+            <button
+              className="btn btn-secondary btn-sm"
+              onClick={onOpen3D}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '5px 12px',
+                fontSize: 'var(--text-xs)',
+                fontWeight: 600,
+                borderRadius: 'var(--radius-full)',
+              }}
+              title="Experience 3D Smart Home & Appliances"
+            >
+              <Sparkles size={14} style={{ color: 'var(--color-accent)' }} />
+              <span>3D Home</span>
+            </button>
+          )}
           <button
             className="user-profile-btn"
             onClick={() => setProfileOpen(true)}
@@ -175,14 +219,36 @@ export default function AppShell({ children }: ShellProps) {
 
       {/* === Mobile Top Bar === */}
       <header className="mobile-topbar" aria-label="Mobile navigation">
-        <button
-          className="btn btn-ghost btn-icon"
-          onClick={() => setDrawerOpen(true)}
-          aria-label="Open navigation menu"
-          aria-expanded={drawerOpen}
-        >
-          <Menu size={20} />
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <button
+            className="btn btn-ghost btn-icon"
+            onClick={() => setDrawerOpen(true)}
+            aria-label="Open navigation menu"
+            aria-expanded={drawerOpen}
+          >
+            <Menu size={20} />
+          </button>
+          {location.pathname !== '/' && (
+            <Link
+              to="/"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 32,
+                height: 32,
+                borderRadius: 'var(--radius-full)',
+                color: 'var(--color-text-primary)',
+                background: 'var(--color-bg-alt)',
+                border: '1px solid var(--color-border)',
+              }}
+              title="Back to Home Overview"
+              aria-label="Back to Home Overview"
+            >
+              <ArrowLeft size={16} />
+            </Link>
+          )}
+        </div>
         <button
           onClick={() => setProfileOpen(true)}
           style={{
@@ -213,6 +279,16 @@ export default function AppShell({ children }: ShellProps) {
           </span>
         </button>
         <div className="flex items-center gap-2">
+          {onOpen3D && (
+            <button
+              className="btn btn-ghost btn-icon"
+              onClick={onOpen3D}
+              title="3D Smart Home & Appliances"
+              style={{ color: 'var(--color-accent)' }}
+            >
+              <Sparkles size={18} />
+            </button>
+          )}
           <BluetoothBadge compact />
           <button className="theme-toggle" onClick={toggle} aria-label="Toggle theme">
             {isDark ? <Sun size={16} /> : <Moon size={16} />}
@@ -308,6 +384,7 @@ function getPageTitle(path: string): string {
     '/': 'Overview',
     '/rooms': 'Rooms',
     '/devices': 'All Devices',
+    '/electricity': 'Electricity Consumption',
     '/lighting': 'Lighting',
     '/climate': 'Climate',
     '/entertainment': 'Entertainment',

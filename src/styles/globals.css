@@ -1866,8 +1866,8 @@ button,
    CONCENTRIC PRECISION RING & DOT CURSOR (NO TAIL)
    ========================================================= */
 @media (pointer: fine) {
-  /* Hide standard browser arrow cursor on desktop */
-  body, a, button, input, select, label, [role="button"] {
+  /* Universally hide default OS cursor so ONLY the custom concentric ring+dot shows */
+  *, *::before, *::after {
     cursor: none !important;
   }
 }
@@ -1877,58 +1877,65 @@ button,
   position: fixed;
   top: 0;
   left: 0;
-  width: 7px;
-  height: 7px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
   pointer-events: none;
-  z-index: 99999;
+  z-index: 1000001;
   background-color: #3E604F;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 0 8px rgba(62, 96, 79, 0.5);
   transition: opacity 0.15s ease, background-color 0.2s ease;
   will-change: transform;
 }
 
-/* Outer Concentric Precision Ring - Instant Sync */
+/* Outer Concentric Precision Ring */
 .precision-cursor-ring {
   position: fixed;
   top: 0;
   left: 0;
-  width: 26px;
-  height: 26px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   pointer-events: none;
-  z-index: 99998;
-  border: 1.5px solid #3E604F;
+  z-index: 1000000;
+  border: 2.2px solid #3E604F;
   background-color: transparent;
+  box-shadow: 0 0 10px rgba(62, 96, 79, 0.35);
   transition: opacity 0.15s ease, border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
   will-change: transform;
 }
 
 /* Hovering over clickable items */
 .precision-cursor-ring.hovered {
-  border-color: #4F735F;
-  background-color: rgba(205, 231, 216, 0.22);
-  box-shadow: 0 0 12px rgba(79, 115, 95, 0.28);
+  border-color: #2F4B3C;
+  background-color: rgba(62, 96, 79, 0.12);
+  box-shadow: 0 0 16px rgba(62, 96, 79, 0.4);
 }
 
 .precision-cursor-dot.hovered {
   background-color: #2F4B3C;
 }
 
-/* Dark mode adjustments: Tone Mint Sage */
-[data-theme="dark"] .precision-cursor-dot {
+/* Dark mode & 3D Residency View adjustments: Vivid Sage Mint */
+[data-theme="dark"] .precision-cursor-dot,
+.residency-3d-overlay ~ * .precision-cursor-dot,
+body:has(.residency-3d-overlay) .precision-cursor-dot {
   background-color: #88C59E;
-  box-shadow: 0 0 8px rgba(136, 197, 158, 0.6);
+  box-shadow: 0 0 10px rgba(136, 197, 158, 0.8);
 }
 
-[data-theme="dark"] .precision-cursor-ring {
-  border-color: #78A78C;
-}
-
-[data-theme="dark"] .precision-cursor-ring.hovered {
+[data-theme="dark"] .precision-cursor-ring,
+.residency-3d-overlay ~ * .precision-cursor-ring,
+body:has(.residency-3d-overlay) .precision-cursor-ring {
   border-color: #88C59E;
-  background-color: rgba(120, 167, 140, 0.2);
-  box-shadow: 0 0 14px rgba(136, 197, 158, 0.4);
+  box-shadow: 0 0 14px rgba(136, 197, 158, 0.55);
+}
+
+[data-theme="dark"] .precision-cursor-ring.hovered,
+body:has(.residency-3d-overlay) .precision-cursor-ring.hovered {
+  border-color: #a7f3d0;
+  background-color: rgba(136, 197, 158, 0.2);
+  box-shadow: 0 0 18px rgba(167, 243, 208, 0.6);
 }
 
 /* User profile button and dialog */
@@ -1996,11 +2003,11 @@ button,
 
 .residency-canvas-container {
   touch-action: none;
-  cursor: grab;
+  cursor: none !important;
 }
 
 .residency-canvas-container:active {
-  cursor: grabbing;
+  cursor: none !important;
 }
 
 .residency-cinematic-vignette {
