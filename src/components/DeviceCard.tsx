@@ -1,5 +1,5 @@
 // ============================================================
-// DEVICE CARD
+// DEVICE CARD — Premium with Glass ON state & Animations
 // ============================================================
 import { useState } from 'react';
 import {
@@ -15,6 +15,17 @@ const ICON_MAP: Record<string, React.ElementType> = {
   Lightbulb, Wind, Thermometer, Tv, Flame, Plug, Zap,
 };
 
+/** Category → accent color pill */
+const CATEGORY_COLORS: Record<string, { bg: string; color: string }> = {
+  lighting:       { bg: 'var(--color-state-on-bg)',   color: 'var(--color-state-on)' },
+  fan:            { bg: 'var(--color-info-bg)',         color: 'var(--color-on-info)' },
+  climate:        { bg: 'var(--color-info-bg)',         color: 'var(--color-on-info)' },
+  entertainment:  { bg: 'var(--color-highlight-light)', color: 'var(--color-highlight)' },
+  'water-heating':{ bg: 'var(--color-warning-bg)',     color: 'var(--color-on-warning)' },
+  outlet:         { bg: 'var(--color-state-off-bg)',   color: 'var(--color-text-secondary)' },
+  other:          { bg: 'var(--color-accent-light)',   color: 'var(--color-accent)' },
+};
+
 interface Props {
   device: Device;
   showRoom?: boolean;
@@ -25,6 +36,7 @@ export default function DeviceCard({ device, showRoom = true }: Props) {
   const preferences = useAppStore((s) => s.preferences);
   const { sendDeviceCommand } = useBluetooth();
   const [optionsOpen, setOptionsOpen] = useState(false);
+  const [pressing, setPressing] = useState(false);
 
   const room = rooms.find((r) => r.id === device.roomId);
   const Icon = ICON_MAP[device.icon] ?? Zap;
@@ -41,11 +53,6 @@ export default function DeviceCard({ device, showRoom = true }: Props) {
     device.confirmedState === 'error' ? 'state-error' :
     isDisconnected ? 'state-disconnected' :
     isDemo ? 'state-demo' : 'state-off';
-
-  const iconStateClass =
-    device.confirmedState === 'on' ? 'state-on' :
-    isDemo ? 'state-demo' :
-    isDisconnected ? 'state-disconnected' : 'state-off';
 
   const statusLabel =
     isPending ? 'Pending…' :
@@ -66,6 +73,8 @@ export default function DeviceCard({ device, showRoom = true }: Props) {
 
   const canControl = isSupported || (isDemo && preferences.demoMode);
 
+  const catColors = CATEGORY_COLORS[device.category] ?? CATEGORY_COLORS.other;
+
   async function handleToggle() {
     if (!canControl) {
       showToast(
@@ -82,14 +91,54 @@ export default function DeviceCard({ device, showRoom = true }: Props) {
     await sendDeviceCommand(device.id, targetAction, preferences.demoMode || !isSupported);
   }
 
+  function handlePress() { setPressing(true); }
+  function handleRelease() { setPressing(false); }
+
   return (
     <article
-      className={`device-card card-hover ${cardStateClass}`}
+      className={`device-card card-hover ${cardStateClass}${isOn ? ' glass-card' : ''}`}
       aria-label={`${device.name}: ${statusLabel}`}
+      style={{
+        position: 'relative',
+        overflow: 'hidden',
+        transform: pressing ? 'scale(0.95)' : 'scale(1)',
+        transition: 'transform 150ms cubic-bezier(0.16,1,0.3,1), box-shadow var(--transition-base)',
+      }}
+      onPointerDown={handlePress}
+      onPointerUp={handleRelease}
+      onPointerLeave={handleRelease}
     >
+      {/* Touch ripple layer */}
+      <span
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          inset: 0,
+          borderRadius: 'inherit',
+          background: 'currentColor',
+          opacity: pressing ? 0.06 : 0,
+          transition: 'opacity 200ms',
+          pointerEvents: 'none',
+        }}
+      />
+
       {/* Header */}
       <div className="device-card-header">
-        <div className={`device-icon-wrap ${iconStateClass}`}>
+        {/* 40×40 Icon pill with category color */}
+        <div
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: 'var(--radius-lg)',
+            background: isOn ? catColors.bg : 'var(--color-state-off-bg)',
+            color: isOn ? catColors.color : 'var(--color-text-tertiary)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+            transition: 'background var(--transition-base), color var(--transition-base)',
+          }}
+        >
           <Icon size={22} aria-hidden="true" />
         </div>
 
@@ -110,7 +159,7 @@ export default function DeviceCard({ device, showRoom = true }: Props) {
         </button>
       </div>
 
-      {/* Status badge */}
+      {/* State badge — pill with color-coded bg */}
       <div className="flex items-center justify-between gap-2">
         <span className={`device-status-badge ${statusClass}`} role="status" aria-live="polite">
           {isPending && <Clock size={10} />}
@@ -127,7 +176,7 @@ export default function DeviceCard({ device, showRoom = true }: Props) {
         )}
       </div>
 
-      {/* Error / warning note */}
+      {/* Error note */}
       {device.errorMessage && !isPending && (
         <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-tertiary)', lineHeight: 1.4 }}>
           {device.errorMessage}
@@ -163,7 +212,7 @@ export default function DeviceCard({ device, showRoom = true }: Props) {
         </label>
       </div>
 
-      {/* Options dropdown (simple) */}
+      {/* Options dropdown */}
       {optionsOpen && (
         <div
           style={{

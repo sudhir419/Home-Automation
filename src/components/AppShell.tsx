@@ -1,13 +1,12 @@
 // ============================================================
-// APP SHELL — Sidebar, top bar, mobile nav
+// APP SHELL — Sidebar, top bar, mobile nav (Premium Redesign)
 // ============================================================
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { NavLink, Link, useLocation } from 'react-router-dom';
 import {
   Home, Layers, Zap, Lightbulb, Wind, Thermometer, Tv,
   Calendar, Bluetooth, Activity, Settings, ChevronLeft,
-  ChevronRight, Menu, X, Sun, Moon, Bell, User, Gauge, Sparkles,
-  ArrowLeft,
+  ChevronRight, Sun, Moon, Gauge, Sparkles, ArrowLeft,
 } from 'lucide-react';
 import { useTheme } from '../hooks/useTheme';
 import { useAppStore } from '../store/appStore';
@@ -51,9 +50,9 @@ const NAV_GROUPS = [
 const BOTTOM_NAV = [
   { to: '/', icon: Home, label: 'Home', exact: true },
   { to: '/devices', icon: Zap, label: 'Devices' },
-  { to: '/schedules', icon: Calendar, label: 'Schedules' },
+  { to: '/schedules', icon: Calendar, label: 'Automations' },
   { to: '/bluetooth', icon: Bluetooth, label: 'Bluetooth' },
-  { to: '/settings', icon: Settings, label: 'Settings' },
+  { to: '/settings', icon: Settings, label: 'More' },
 ];
 
 interface ShellProps {
@@ -63,16 +62,41 @@ interface ShellProps {
 
 export default function AppShell({ children, onOpen3D }: ShellProps) {
   const [collapsed, setCollapsed] = useState(false);
-  const [drawerOpen, setDrawerOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const location = useLocation();
   const { toggle, isDark } = useTheme();
 
-  // Close drawer on navigation
-  useEffect(() => { setDrawerOpen(false); }, [location.pathname]);
-
   // Page title from path
   const pageTitle = getPageTitle(location.pathname);
+
+  // ── Floating pill sliding-indicator ──────────────────────────
+  const activeIndex = BOTTOM_NAV.findIndex((item) =>
+    item.exact
+      ? location.pathname === item.to
+      : location.pathname === item.to || location.pathname.startsWith(item.to + '/')
+  );
+  const pillRef = useRef<HTMLDivElement>(null);
+  const itemRefs = useRef<(HTMLAnchorElement | null)[]>([]);
+
+  useEffect(() => {
+    const pill = pillRef.current;
+    const activeEl = itemRefs.current[activeIndex];
+    if (!pill || !activeEl) return;
+    const parent = activeEl.closest('nav') as HTMLElement | null;
+    if (!parent) return;
+    const parentRect = parent.getBoundingClientRect();
+    const itemRect = activeEl.getBoundingClientRect();
+    pill.style.transform = `translateX(${itemRect.left - parentRect.left}px)`;
+    pill.style.width = `${itemRect.width}px`;
+  }, [activeIndex, location.pathname]);
+
+  // ── Theme-aware pill styles ───────────────────────────────────
+  const navBg = isDark
+    ? 'rgba(10,10,10,0.80)'
+    : 'rgba(255,255,255,0.85)';
+  const navBorder = isDark
+    ? '1px solid rgba(255,255,255,0.08)'
+    : '1px solid rgba(255,255,255,0.4)';
 
   return (
     <div className="app-shell">
@@ -218,154 +242,193 @@ export default function AppShell({ children, onOpen3D }: ShellProps) {
       </header>
 
       {/* === Mobile Top Bar === */}
-      <header className="mobile-topbar" aria-label="Mobile navigation">
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <button
-            className="btn btn-ghost btn-icon"
-            onClick={() => setDrawerOpen(true)}
-            aria-label="Open navigation menu"
-            aria-expanded={drawerOpen}
-          >
-            <Menu size={20} />
-          </button>
-          {location.pathname !== '/' && (
-            <Link
-              to="/"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: 32,
-                height: 32,
-                borderRadius: 'var(--radius-full)',
-                color: 'var(--color-text-primary)',
-                background: 'var(--color-bg-alt)',
-                border: '1px solid var(--color-border)',
-              }}
-              title="Back to Home Overview"
-              aria-label="Back to Home Overview"
-            >
-              <ArrowLeft size={16} />
-            </Link>
-          )}
-        </div>
-        <button
-          onClick={() => setProfileOpen(true)}
+      <header
+        className="mobile-topbar"
+        aria-label="Mobile navigation"
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: 60,
+          zIndex: 100,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '0 16px',
+          backdropFilter: 'blur(20px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+          background: isDark ? 'rgba(0,0,0,0.85)' : 'rgba(255,255,255,0.85)',
+          borderBottom: isDark
+            ? '1px solid rgba(255,255,255,0.08)'
+            : '1px solid rgba(0,0,0,0.06)',
+          boxShadow: '0 1px 12px rgba(0,0,0,0.1)',
+        }}
+      >
+        {/* Left: App Title */}
+        <span
           style={{
-            background: 'none',
-            border: 'none',
             fontFamily: 'var(--font-heading)',
             fontWeight: 700,
-            fontSize: 'var(--text-base)',
+            fontSize: '1.1rem',
             color: 'var(--color-text-primary)',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6
+            letterSpacing: '-0.02em',
           }}
-          title="Click to view Resident Profile"
         >
-          <span>{pageTitle}</span>
-          <span
-            style={{
-              fontSize: '10px',
-              padding: '1px 6px',
-              borderRadius: 'var(--radius-full)',
-              background: 'var(--color-highlight-light)',
-              color: 'var(--color-highlight)'
-            }}
-          >
-            MR
-          </span>
-        </button>
-        <div className="flex items-center gap-2">
+          Home Auto
+        </span>
+
+        {/* Right: 3D button, BT badge, theme toggle */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {onOpen3D && (
             <button
-              className="btn btn-ghost btn-icon"
               onClick={onOpen3D}
               title="3D Smart Home & Appliances"
-              style={{ color: 'var(--color-accent)' }}
+              aria-label="Open 3D Home"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 36,
+                height: 36,
+                borderRadius: '50%',
+                border: 'none',
+                background: isDark
+                  ? 'rgba(16,185,129,0.15)'
+                  : 'rgba(16,185,129,0.1)',
+                color: '#10b981',
+                cursor: 'pointer',
+                transition: 'background 150ms ease, transform 150ms ease',
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.08)';
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)';
+              }}
             >
               <Sparkles size={18} />
             </button>
           )}
           <BluetoothBadge compact />
-          <button className="theme-toggle" onClick={toggle} aria-label="Toggle theme">
+          <button
+            className="theme-toggle"
+            onClick={toggle}
+            aria-label="Toggle theme"
+          >
             {isDark ? <Sun size={16} /> : <Moon size={16} />}
           </button>
         </div>
       </header>
 
-      {/* === Mobile Drawer overlay === */}
-      <div
-        className={`mobile-nav-overlay ${drawerOpen ? 'visible' : ''}`}
-        onClick={() => setDrawerOpen(false)}
-        aria-hidden="true"
-      />
+      {/* === Main Content === */}
+      <main
+        className={`main-content page-enter ${collapsed ? 'sidebar-collapsed' : ''}`}
+        id="main-content"
+        aria-label="Page content"
+        style={{
+          // Mobile overrides are via CSS; inline for safety
+        }}
+      >
+        {children}
+      </main>
 
-      {/* === Mobile Drawer === */}
-      <nav className={`mobile-drawer ${drawerOpen ? 'open' : ''}`} aria-label="Mobile menu" aria-hidden={!drawerOpen}>
-        <div className="sidebar-logo">
-          <div className="sidebar-logo-icon"><HomeIcon /></div>
-          <div className="sidebar-logo-text">
-            <h1>Home Auto</h1>
-            <span>Smart Living</span>
-          </div>
-          <button
-            className="btn btn-ghost btn-icon"
-            style={{ marginLeft: 'auto' }}
-            onClick={() => setDrawerOpen(false)}
-            aria-label="Close menu"
-          >
-            <X size={18} />
-          </button>
-        </div>
-        <div className="sidebar-nav">
-          {NAV_GROUPS.map((group) => (
-            <div key={group.label}>
-              <div className="sidebar-section-label">{group.label}</div>
-              {group.items.map((item) => (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  end={item.exact}
-                  className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
-                >
-                  <item.icon size={18} aria-hidden="true" />
-                  <span>{item.label}</span>
-                </NavLink>
-              ))}
-            </div>
-          ))}
-        </div>
-      </nav>
-
-      {/* === Bottom Nav (mobile) === */}
-      <nav className="bottom-nav" aria-label="Bottom navigation">
-        <div className="bottom-nav-inner">
-          {BOTTOM_NAV.map((item) => (
+      {/* === Bottom Nav (mobile) — Floating Pill === */}
+      <nav
+        className="bottom-nav"
+        aria-label="Bottom navigation"
+        style={{
+          position: 'fixed',
+          bottom: 16,
+          left: 12,
+          right: 12,
+          zIndex: 200,
+          borderRadius: 28,
+          backdropFilter: 'blur(24px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+          background: navBg,
+          border: navBorder,
+          boxShadow: '0 8px 32px rgba(0,0,0,0.2), 0 2px 8px rgba(0,0,0,0.1)',
+          paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+        }}
+      >
+        {/* Animated sliding indicator pill */}
+        <div
+          ref={pillRef}
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            top: 6,
+            height: 'calc(100% - 12px)',
+            borderRadius: 22,
+            background: isDark
+              ? 'rgba(16,185,129,0.15)'
+              : 'rgba(16,185,129,0.12)',
+            pointerEvents: 'none',
+            transition: 'transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1), width 300ms cubic-bezier(0.34, 1.56, 0.64, 1)',
+            willChange: 'transform, width',
+          }}
+        />
+        <div
+          className="bottom-nav-inner"
+          style={{
+            display: 'flex',
+            justifyContent: 'space-evenly',
+            alignItems: 'stretch',
+            padding: '10px 4px 10px',
+            position: 'relative',
+          }}
+        >
+          {BOTTOM_NAV.map((item, idx) => (
             <NavLink
               key={item.to}
               to={item.to}
               end={item.exact}
-              className={({ isActive }) => `bottom-nav-item ${isActive ? 'active' : ''}`}
+              ref={(el) => { itemRefs.current[idx] = el; }}
+              className="bottom-nav-item"
               aria-label={item.label}
+              style={({ isActive }) => ({
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 3,
+                padding: '4px 14px',
+                borderRadius: 20,
+                textDecoration: 'none',
+                color: isActive ? '#10b981' : 'var(--color-text-secondary)',
+                transition: 'color 200ms ease',
+                minWidth: 52,
+                position: 'relative',
+                zIndex: 1,
+              })}
             >
-              <item.icon aria-hidden="true" />
-              <span>{item.label}</span>
+              {({ isActive }) => (
+                <>
+                  <item.icon
+                    size={22}
+                    aria-hidden="true"
+                    style={{
+                      color: isActive ? '#10b981' : 'var(--color-text-secondary)',
+                      transition: 'color 200ms ease',
+                    }}
+                  />
+                  <span
+                    style={{
+                      fontSize: 10,
+                      fontWeight: isActive ? 700 : 500,
+                      lineHeight: 1,
+                      color: isActive ? '#10b981' : 'var(--color-text-secondary)',
+                      transition: 'color 200ms ease, font-weight 200ms ease',
+                    }}
+                  >
+                    {item.label}
+                  </span>
+                </>
+              )}
             </NavLink>
           ))}
         </div>
       </nav>
-
-      {/* === Main Content === */}
-      <main
-        className={`main-content ${collapsed ? 'sidebar-collapsed' : ''}`}
-        id="main-content"
-        aria-label="Page content"
-      >
-        {children}
-      </main>
     </div>
   );
 }

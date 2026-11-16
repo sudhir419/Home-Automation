@@ -61,6 +61,135 @@ export const COMMANDS: Record<string, { on: string; off: string }> = {
 
 export const COMMAND_TERMINATOR = '\n'; // adjust if firmware uses '\r\n'
 
+// ---- BLE Config helper ----------------------------------------------------------
+export interface BLEConfig {
+  serviceUUID: string;
+  txCharUUID: string;
+}
+
+export function getBLEConfig(): BLEConfig {
+  try {
+    const stored = JSON.parse(localStorage.getItem('ble-config') || '{}');
+    return {
+      serviceUUID: stored.serviceUUID || '4fafc201-1fb5-459e-8fcc-c5c9c331914b',
+      txCharUUID: stored.txCharUUID || 'beb5483e-36e1-4688-b7f5-ea07361b26a8',
+    };
+  } catch {
+    return {
+      serviceUUID: '4fafc201-1fb5-459e-8fcc-c5c9c331914b',
+      txCharUUID: 'beb5483e-36e1-4688-b7f5-ea07361b26a8',
+    };
+  }
+}
+
+// ---- Web Bluetooth Declarations ------------------------------------------------
+// Web Bluetooth is a draft web standard available in Chromium/Android Chrome.
+type BluetoothDevice = any;
+type BluetoothRemoteGATTServer = any;
+type BluetoothRemoteGATTCharacteristic = any;
+
+declare global {
+  interface Navigator {
+    bluetooth?: {
+      requestDevice(options: any): Promise<BluetoothDevice>;
+    };
+  }
+}
+
+// ---- Web Bluetooth Adapter (Chrome / HTTPS) -------------------------------------
+// Uses the Web Bluetooth API (navigator.bluetooth) for real BLE connections.
+// Requires HTTPS or localhost. Only available in Chrome/Chromium-based browsers.
+class WebBluetoothAdapter implements BluetoothAdapter {
+  private device: BluetoothDevice | null = null;
+  private server: BluetoothRemoteGATTServer | null = null;
+  private txCharacteristic: BluetoothRemoteGATTCharacteristic | null = null;
+  private _handlers: Array<(msg: BluetoothMessage) => void> = [];
+
+  async checkSupport(): Promise<boolean> {
+    return 'bluetooth' in navigator;
+  }
+
+  async requestPermissions(): Promise<boolean> {
+    // Web Bluetooth handles permissions via the device picker dialog
+    return true;
+  }
+
+  async startScan(onFound: (name: string, address: string) => void): Promise<void> {
+    if (!navigator.bluetooth) {
+      throw new Error('Web Bluetooth not supported in this browser');
+    }
+
+    if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+      throw new Error(
+        'Web Bluetooth requires HTTPS. Please use the Vercel URL or localhost.'
+      );
+    }
+
+    const config = getBLEConfig();
+
+    this.device = await navigator.bluetooth.requestDevice({
+      filters: [{ services: [config.serviceUUID] }],
+      optionalServices: [config.serviceUUID],
+    });
+
+    if (this.device?.name && this.device?.id) {
+      onFound(this.device.name || 'ESP32 Device', this.device.id);
+    }
+  }
+
+  async stopScan(): Promise<void> {
+    // Web Bluetooth scan ends automatically after requestDevice resolves
+  }
+
+  async connect(address: string): Promise<void> {
+    if (!this.device) {
+      throw new Error('No device selected. Run scan first.');
+    }
+
+    const config = getBLEConfig();
+    this.server = await this.device.gatt!.connect();
+    const service = await this.server.getPrimaryService(config.serviceUUID);
+    this.txCharacteristic = await service.getCharacteristic(config.txCharUUID);
+
+    this._emit(`CONNECTED:${address}`);
+  }
+
+  async disconnect(): Promise<void> {
+    if (this.server?.connected) {
+      this.server.disconnect();
+    }
+    this.device = null;
+    this.server = null;
+    this.txCharacteristic = null;
+    this._emit('DISCONNECTED');
+  }
+
+  async sendCommand(command: string): Promise<void> {
+    if (!this.txCharacteristic) {
+      throw new Error('Not connected to BLE device');
+    }
+    const encoder = new TextEncoder();
+    await this.txCharacteristic.writeValue(encoder.encode(command + '\n'));
+    this._emit(`ACK:${command.trim()}`);
+  }
+
+  onMessage(handler: (msg: BluetoothMessage) => void): () => void {
+    this._handlers.push(handler);
+    return () => {
+      this._handlers = this._handlers.filter((h) => h !== handler);
+    };
+  }
+
+  isConnected(): boolean {
+    return this.server?.connected ?? false;
+  }
+
+  private _emit(raw: string): void {
+    const msg: BluetoothMessage = { raw, timestamp: new Date() };
+    this._handlers.forEach((h) => h(msg));
+  }
+}
+
 // ---- Mock Adapter (Demo / browser mode) -----------------------------------------
 // Simulates connection and command ACK with delays.
 // Clearly NOT real hardware. Always labeled in the UI.
@@ -114,11 +243,17 @@ class MockBluetoothAdapter implements BluetoothAdapter {
 }
 
 // ---- Public singleton -----------------------------------------------------------
-// To swap to a real plugin:
-//   1. Install the plugin (e.g. @capacitor-community/bluetooth-le or a native module)
+// Automatically picks WebBluetoothAdapter when navigator.bluetooth is present
+// (Chrome on HTTPS/localhost), otherwise falls back to MockBluetoothAdapter.
+//
+// To swap to a Capacitor BLE plugin for the Android APK:
+//   1. Install the plugin (e.g. @capacitor-community/bluetooth-le)
 //   2. Implement BluetoothAdapter against the plugin's API
-//   3. Export it here instead of MockBluetoothAdapter
-export const bluetoothAdapter: BluetoothAdapter = new MockBluetoothAdapter();
+//   3. Export it here instead
+export const bluetoothAdapter: BluetoothAdapter =
+  'bluetooth' in navigator
+    ? new WebBluetoothAdapter()
+    : new MockBluetoothAdapter();
 
 // ---- Command helpers ------------------------------------------------------------
 export function buildCommand(deviceId: string, action: 'on' | 'off'): string | null {

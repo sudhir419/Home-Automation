@@ -22,8 +22,14 @@
         } catch(e) {}
       })();
     </script>
-    <script type="module" crossorigin src="./assets/index-Dr68StDT.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-D3_KImff.css">
+    <link rel="manifest" href="./manifest.json" />
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js').catch(err => console.error('SW registration failed:', err));
+      }
+    </script>
+    <script type="module" crossorigin src="./assets/index-BOSDCOZf.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-B8eIrnXW.css">
   </head>
   <body>
     <div id="root"></div>

@@ -1,11 +1,11 @@
 // ============================================================
-// DASHBOARD PAGE
+// DASHBOARD PAGE — Premium Mobile-First Redesign
 // ============================================================
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Zap, Wifi, WifiOff, Calendar, Lightbulb, ArrowRight,
-  Bluetooth, PowerOff, Clock, AlertTriangle,
+  Bluetooth, Clock, AlertTriangle,
 } from 'lucide-react';
 import { useAppStore } from '../store/appStore';
 import { useBluetooth } from '../services/bluetooth/useBluetooth';
@@ -35,10 +35,7 @@ export default function DashboardPage() {
     (d) => d.category === 'lighting' && d.support === 'supported'
   );
 
-  // All ON devices for overview grid
-  const activeDevices = devices.filter((d) => d.confirmedState === 'on');
-
-  // Recently updated devices for the overview section (show supported first, then demo)
+  // Recently updated devices for overview section
   const overviewDevices = [
     ...devices.filter((d) => d.support === 'supported'),
     ...devices.filter((d) => d.support === 'demo').slice(0, 4),
@@ -49,7 +46,6 @@ export default function DashboardPage() {
 
   async function handleConnectScan() {
     await scan();
-    // After scan finds a device, auto-connect if address found
     setTimeout(() => {
       const { deviceAddress: addr, deviceName: devName } = useAppStore.getState().bluetooth;
       if (addr && devName) connect(addr, devName);
@@ -71,20 +67,60 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Page header */}
-      <div className="page-header">
-        <p style={{ color: 'var(--color-text-tertiary)', fontSize: 'var(--text-sm)', marginBottom: 'var(--space-1)' }}>
-          {greeting}
-        </p>
-        <h2>Your Home</h2>
-        <p style={{ fontSize: 'var(--text-sm)', marginTop: 'var(--space-1)' }}>
-          {format(now, 'EEEE, d MMMM yyyy')} &middot; {format(now, 'hh:mm a')}
-        </p>
+      {/* ── Hero Section ── */}
+      <div
+        className="glass-card"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: 'var(--space-5) var(--space-6)',
+          marginBottom: 'var(--space-5)',
+          gap: 'var(--space-4)',
+        }}
+      >
+        <div>
+          <p className="text-xs text-tertiary" style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-tertiary)', marginBottom: 2 }}>
+            {greeting}
+          </p>
+          <h2 style={{ margin: 0, lineHeight: 1.1 }}>Your Home</h2>
+          <p style={{ fontSize: 'var(--text-sm)', marginTop: 'var(--space-1)', color: 'var(--color-text-secondary)' }}>
+            {format(now, 'EEEE, d MMMM · hh:mm a')}
+          </p>
+        </div>
+        <div
+          style={{
+            flexShrink: 0,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '6px 14px',
+            borderRadius: 'var(--radius-full)',
+            background: isConnected ? 'var(--color-state-on-bg)' : 'var(--color-state-off-bg)',
+            color: isConnected ? 'var(--color-state-on)' : 'var(--color-text-tertiary)',
+            fontSize: 'var(--text-xs)',
+            fontWeight: 600,
+            border: '1px solid',
+            borderColor: isConnected ? 'var(--color-state-on)' : 'var(--color-border)',
+            whiteSpace: 'nowrap',
+            transition: 'all var(--transition-base)',
+          }}
+        >
+          <span style={{ fontSize: 10 }}>{isConnected ? '●' : '○'}</span>
+          {isConnected ? 'Connected' : 'Offline'}
+        </div>
       </div>
 
-      {/* Summary stat cards */}
-      <div className="grid-4 mb-6">
-        <div className="stat-card">
+      {/* ── Stats Grid 2×2 on mobile ── */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: 'var(--space-3)',
+          marginBottom: 'var(--space-5)',
+        }}
+      >
+        <div className="stat-card glass-card">
           <div className="stat-card-icon" style={{ background: 'var(--color-accent-light)', color: 'var(--color-accent)' }}>
             <Zap size={20} aria-hidden="true" />
           </div>
@@ -92,15 +128,15 @@ export default function DashboardPage() {
           <div className="stat-card-label">Configured Devices</div>
         </div>
 
-        <div className="stat-card">
+        <div className="stat-card glass-card">
           <div className="stat-card-icon" style={{ background: 'var(--color-state-on-bg)', color: 'var(--color-state-on)' }}>
             <Lightbulb size={20} aria-hidden="true" />
           </div>
           <div className="stat-card-value">{stats.onCount}</div>
-          <div className="stat-card-label">Devices Reported ON</div>
+          <div className="stat-card-label">Devices ON</div>
         </div>
 
-        <div className="stat-card">
+        <div className="stat-card glass-card">
           <div
             className="stat-card-icon"
             style={{
@@ -113,10 +149,10 @@ export default function DashboardPage() {
           <div className="stat-card-value" style={{ fontSize: 'var(--text-xl)' }}>
             {bluetooth.status === 'connected' ? 'Online' : 'Offline'}
           </div>
-          <div className="stat-card-label">Bluetooth Status</div>
+          <div className="stat-card-label">BT Status</div>
         </div>
 
-        <div className="stat-card">
+        <div className="stat-card glass-card">
           <div className="stat-card-icon" style={{ background: 'var(--color-info-bg)', color: 'var(--color-on-info)' }}>
             <Calendar size={20} aria-hidden="true" />
           </div>
@@ -125,40 +161,82 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Quick actions */}
-      <div className="section-header mb-4">
+      {/* ── Quick Actions — Horizontal Scrollable Row ── */}
+      <div className="section-header" style={{ marginBottom: 'var(--space-3)' }}>
         <h3>Quick Actions</h3>
       </div>
-      <div className="flex gap-3 mb-6" style={{ flexWrap: 'wrap' }}>
+      <div
+        style={{
+          display: 'flex',
+          gap: 'var(--space-2)',
+          overflowX: 'auto',
+          scrollbarWidth: 'none',
+          WebkitOverflowScrolling: 'touch' as React.CSSProperties['WebkitOverflowScrolling'],
+          paddingBottom: 'var(--space-1)',
+          marginBottom: 'var(--space-5)',
+        }}
+      >
+        <style>{`.quick-actions-scroll::-webkit-scrollbar{display:none}`}</style>
+
         {!isConnected ? (
           <button
             className="btn btn-primary"
+            style={{ flexShrink: 0, borderRadius: 'var(--radius-full)', whiteSpace: 'nowrap' }}
             onClick={handleConnectScan}
             disabled={bluetooth.status === 'connecting' || bluetooth.status === 'scanning'}
           >
             <Bluetooth size={16} />
             {bluetooth.status === 'connecting' ? 'Connecting…' :
-             bluetooth.status === 'scanning' ? 'Scanning…' : 'Connect Bluetooth'}
+             bluetooth.status === 'scanning' ? 'Scanning…' : 'Connect BT'}
           </button>
         ) : (
-          <button className="btn btn-secondary" onClick={disconnect}>
+          <button
+            className="btn btn-secondary"
+            style={{ flexShrink: 0, borderRadius: 'var(--radius-full)', whiteSpace: 'nowrap' }}
+            onClick={disconnect}
+          >
             <WifiOff size={16} />
             Disconnect
           </button>
         )}
 
-        <Link to="/devices" className="btn btn-secondary">
+        <Link
+          to="/devices"
+          className="btn btn-secondary"
+          style={{ flexShrink: 0, borderRadius: 'var(--radius-full)', whiteSpace: 'nowrap' }}
+        >
           <Zap size={16} />
           All Devices
         </Link>
 
-        <Link to="/schedules" className="btn btn-secondary">
+        <Link
+          to="/schedules"
+          className="btn btn-secondary"
+          style={{ flexShrink: 0, borderRadius: 'var(--radius-full)', whiteSpace: 'nowrap' }}
+        >
           <Calendar size={16} />
           Schedules
         </Link>
+
+        <Link
+          to="/rooms"
+          className="btn btn-secondary"
+          style={{ flexShrink: 0, borderRadius: 'var(--radius-full)', whiteSpace: 'nowrap' }}
+        >
+          Rooms
+        </Link>
+
+        <Link
+          to="/bluetooth"
+          className="btn btn-secondary"
+          style={{ flexShrink: 0, borderRadius: 'var(--radius-full)', whiteSpace: 'nowrap' }}
+        >
+          <Bluetooth size={16} />
+          Bluetooth
+        </Link>
       </div>
 
-      {/* Supported HW device overview */}
+      {/* ── Supported HW device section ── */}
       {supportedLights.length > 0 && (
         <>
           <div className="section-divider">
@@ -166,7 +244,7 @@ export default function DashboardPage() {
             <span className="section-divider-label">Hardware — Confirmed Outputs</span>
             <div className="section-divider-line" />
           </div>
-          <div className="grid-auto mb-6">
+          <div className="grid-auto" style={{ marginBottom: 'var(--space-5)' }}>
             {supportedLights.map((d) => (
               <DeviceCard key={d.id} device={d} />
             ))}
@@ -174,53 +252,74 @@ export default function DashboardPage() {
         </>
       )}
 
-      {/* Overview grid */}
-      <div className="section-header">
+      {/* ── Device Overview ── */}
+      <div className="section-header" style={{ marginBottom: 'var(--space-3)' }}>
         <h3>Device Overview</h3>
         <Link to="/devices" className="btn btn-ghost btn-sm" style={{ gap: 'var(--space-1)' }}>
-          View all <ArrowRight size={14} />
+          View All <ArrowRight size={14} />
         </Link>
       </div>
-      <div className="grid-auto">
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(2, 1fr)',
+          gap: 'var(--space-3)',
+          marginBottom: 'var(--space-5)',
+        }}
+      >
         {overviewDevices.map((d) => (
           <DeviceCard key={d.id} device={d} />
         ))}
       </div>
 
-      {/* Upcoming schedules */}
+      {/* ── Upcoming Schedules — minimal list ── */}
       {schedules.length > 0 && (
         <>
-          <div className="section-header mt-6">
+          <div className="section-header" style={{ marginBottom: 'var(--space-3)' }}>
             <h3>Upcoming Schedules</h3>
             <Link to="/schedules" className="btn btn-ghost btn-sm">
-              View all <ArrowRight size={14} />
+              View All <ArrowRight size={14} />
             </Link>
           </div>
-          <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+          <div
+            className="glass-card"
+            style={{ display: 'flex', flexDirection: 'column', gap: 0, overflow: 'hidden', marginBottom: 'var(--space-5)' }}
+          >
             <div
               className="alert info"
-              style={{ marginBottom: 'var(--space-4)', fontSize: 'var(--text-xs)' }}
+              style={{ margin: 'var(--space-3) var(--space-4) 0', fontSize: 'var(--text-xs)', borderRadius: 'var(--radius-md)' }}
             >
               <Clock size={14} />
-              Schedules run only while this app is open. Hardware execution requires ESP32 RTC firmware.
+              Schedules run only while this app is open.
             </div>
-            {schedules.filter((s) => s.enabled).slice(0, 3).map((sched) => {
+            {schedules.filter((s) => s.enabled).slice(0, 3).map((sched, idx, arr) => {
               const devName = devices.find((d) => d.id === sched.deviceIds[0])?.name ?? 'Device';
               const [h, m] = sched.time.split(':').map(Number);
               const period = h >= 12 ? 'PM' : 'AM';
               const h12 = h % 12 || 12;
               return (
-                <div key={sched.id} className="schedule-card">
-                  <div className="schedule-time-block">
-                    <div className="time">{String(h12).padStart(2,'0')}:{String(m).padStart(2,'0')}</div>
-                    <div className="period">{period}</div>
+                <div
+                  key={sched.id}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 'var(--space-3)',
+                    padding: 'var(--space-3) var(--space-4)',
+                    borderBottom: idx < arr.length - 1 ? '1px solid var(--color-border-subtle)' : undefined,
+                  }}
+                >
+                  <div style={{ textAlign: 'center', minWidth: 44 }}>
+                    <div style={{ fontWeight: 700, fontSize: 'var(--text-base)', fontFamily: 'monospace', color: 'var(--color-text-primary)', lineHeight: 1 }}>
+                      {String(h12).padStart(2, '0')}:{String(m).padStart(2, '0')}
+                    </div>
+                    <div style={{ fontSize: 10, color: 'var(--color-text-tertiary)', fontWeight: 600 }}>{period}</div>
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontWeight: 600, fontSize: 'var(--text-sm)', color: 'var(--color-text-primary)' }}>
+                    <div style={{ fontWeight: 600, fontSize: 'var(--text-sm)', color: 'var(--color-text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {sched.name}
                     </div>
-                    <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-tertiary)', marginTop: 2 }}>
-                      {devName} · {sched.action.toUpperCase()} · {sched.repeat}
+                    <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-tertiary)' }}>
+                      {devName} · {sched.repeat}
                     </div>
                   </div>
                   <span className={`device-status-badge ${sched.action === 'on' ? 'on' : 'off'}`}>

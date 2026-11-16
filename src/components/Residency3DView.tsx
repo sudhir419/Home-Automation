@@ -5,7 +5,8 @@
 // ============================================================
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
-import { ArrowLeft, Sparkles } from 'lucide-react';
+import { ArrowLeft, Sparkles, X, ExternalLink } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface Props {
   onBackToHome: () => void;
@@ -72,9 +73,12 @@ export default function Residency3DView({ onBackToHome, onBackToIntro }: Props) 
     // --- 1. Three.js Scene Setup ---
     const scene = new THREE.Scene();
 
-    // --- 2. Camera Setup ---
-    const camera = new THREE.PerspectiveCamera(44, width / height, 0.1, 100);
-    camera.position.set(0, 1.4, 5.8);
+    // --- 2. Camera Setup (Responsive) ---
+    const isMobile = window.innerWidth < 768;
+    const camera = new THREE.PerspectiveCamera(isMobile ? 38 : 44, width / height, 0.1, 100);
+    camera.position.set(0, isMobile ? 2.0 : 1.4, isMobile ? 7.5 : 5.8);
+    camera.fov = isMobile ? 38 : 44;
+    camera.updateProjectionMatrix();
     camera.lookAt(0, 0.1, 0);
 
     // --- 3. WebGL Renderer with High-Def Antialiasing & Tone Mapping ---
@@ -85,7 +89,7 @@ export default function Residency3DView({ onBackToHome, onBackToIntro }: Props) 
       precision: 'highp',
     });
     renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2.5));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2.0));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.3;
     renderer.shadowMap.enabled = true;
@@ -841,8 +845,13 @@ export default function Residency3DView({ onBackToHome, onBackToIntro }: Props) 
       if (!container) return;
       width = container.clientWidth || window.innerWidth;
       height = container.clientHeight || window.innerHeight;
+      const mobile = window.innerWidth < 768;
       camera.aspect = width / height;
+      camera.fov = mobile ? 38 : 44;
+      camera.position.set(0, mobile ? 2.0 : 1.4, mobile ? 7.5 : 5.8);
+      camera.lookAt(0, 0.1, 0);
       camera.updateProjectionMatrix();
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, mobile ? 1.5 : 2.0));
       renderer.setSize(width, height);
     };
 
@@ -913,8 +922,8 @@ export default function Residency3DView({ onBackToHome, onBackToIntro }: Props) 
               gap: 8,
               padding: '9px 18px',
               borderRadius: 'var(--radius-full)',
-              background: 'rgba(6, 30, 20, 0.85)',
-              border: '1px solid rgba(52, 211, 153, 0.45)',
+              background: 'rgba(0,0,0,0.5)',
+              border: '1px solid rgba(255,255,255,0.1)',
               color: '#a7f3d0',
               fontSize: 'var(--text-xs)',
               fontWeight: 600,
@@ -994,7 +1003,7 @@ export default function Residency3DView({ onBackToHome, onBackToIntro }: Props) 
         <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 15 }}>
           {tagPositions.map((tag) => {
             if (!tag.visible) return null;
-            const isHovered = activeApplianceId === tag.id;
+            const isActive = activeApplianceId === tag.id;
             return (
               <div
                 key={tag.id}
@@ -1005,9 +1014,9 @@ export default function Residency3DView({ onBackToHome, onBackToIntro }: Props) 
                   transform: 'translate(-50%, -100%)',
                   padding: '4px 14px',
                   borderRadius: 'var(--radius-full)',
-                  background: isHovered ? 'rgba(16, 185, 129, 0.95)' : 'rgba(5, 24, 16, 0.82)',
+                  background: isActive ? 'rgba(16, 185, 129, 0.95)' : 'rgba(5, 24, 16, 0.82)',
                   border: '1px solid rgba(52, 211, 153, 0.45)',
-                  color: isHovered ? '#FFFFFF' : '#a7f3d0',
+                  color: isActive ? '#FFFFFF' : '#a7f3d0',
                   fontSize: '12px',
                   fontWeight: 700,
                   fontFamily: 'var(--font-heading)',
@@ -1016,7 +1025,10 @@ export default function Residency3DView({ onBackToHome, onBackToIntro }: Props) 
                   backdropFilter: 'blur(8px)',
                   transition: 'background 0.2s ease, transform 0.2s ease',
                   whiteSpace: 'nowrap',
+                  pointerEvents: 'auto',
+                  cursor: 'pointer',
                 }}
+                onClick={() => setActiveApplianceId(isActive ? null : tag.id)}
               >
                 {tag.name}
               </div>
@@ -1024,6 +1036,94 @@ export default function Residency3DView({ onBackToHome, onBackToIntro }: Props) 
           })}
         </div>
       )}
+
+      {/* Appliance Detail Panel */}
+      {activeApplianceId && (() => {
+        const appliance = APPLIANCES_LIST.find(a => a.id === activeApplianceId);
+        if (!appliance) return null;
+        const isMobileView = window.innerWidth < 768;
+        return (
+          <div
+            style={isMobileView ? {
+              // Mobile: slide-up bottom sheet
+              position: 'fixed',
+              bottom: 0,
+              left: 0,
+              right: 0,
+              zIndex: 50,
+              backdropFilter: 'blur(20px) saturate(180%)',
+              background: 'rgba(10, 10, 10, 0.88)',
+              borderRadius: '20px 20px 0 0',
+              border: '1px solid rgba(255,255,255,0.1)',
+              borderBottom: 'none',
+              padding: '20px 24px',
+              paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 24px)',
+              boxShadow: '0 -8px 40px rgba(0,0,0,0.6)',
+              animation: 'slide-up 0.3s cubic-bezier(0.16,1,0.3,1) both',
+            } : {
+              // Desktop: side panel
+              position: 'absolute',
+              right: 24,
+              top: '50%',
+              transform: 'translateY(-50%)',
+              zIndex: 50,
+              backdropFilter: 'blur(20px) saturate(180%)',
+              background: 'rgba(10, 10, 10, 0.85)',
+              borderRadius: 20,
+              border: '1px solid rgba(255,255,255,0.1)',
+              padding: '20px 24px',
+              minWidth: 240,
+              boxShadow: '0 8px 40px rgba(0,0,0,0.6)',
+              animation: 'card-appear 0.3s both',
+            }}
+          >
+            {/* Close button */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <span style={{ color: '#a7f3d0', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                {appliance.category}
+              </span>
+              <button
+                onClick={() => setActiveApplianceId(null)}
+                style={{
+                  background: 'rgba(255,255,255,0.08)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: '50%',
+                  width: 28,
+                  height: 28,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  color: '#a0a0a0',
+                }}
+              >
+                <X size={14} />
+              </button>
+            </div>
+            <div style={{ color: '#ffffff', fontSize: 20, fontWeight: 700, marginBottom: 4 }}>{appliance.name}</div>
+            <div style={{ color: '#555', fontSize: 13, marginBottom: 16 }}>Power rating: <span style={{ color: '#a7f3d0' }}>{appliance.powerRating}</span></div>
+            <Link
+              to="/devices"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '9px 18px',
+                borderRadius: 'var(--radius-full)',
+                background: 'rgba(16, 185, 129, 0.15)',
+                border: '1px solid rgba(16, 185, 129, 0.4)',
+                color: '#34d399',
+                fontSize: 13,
+                fontWeight: 600,
+                textDecoration: 'none',
+              }}
+            >
+              <ExternalLink size={14} />
+              Open Dashboard
+            </Link>
+          </div>
+        );
+      })()}
 
       {/* Floating Enter Dashboard Button — Positioned slightly down, directly above the 3D model */}
       <div
@@ -1046,6 +1146,10 @@ export default function Residency3DView({ onBackToHome, onBackToIntro }: Props) 
             padding: '10px 24px',
             fontSize: 'var(--text-sm)',
             boxShadow: '0 8px 24px rgba(0, 0, 0, 0.5), 0 0 20px rgba(16, 185, 129, 0.4)',
+            backdropFilter: 'blur(12px)',
+            background: 'rgba(0,0,0,0.5)',
+            borderRadius: 12,
+            border: '1px solid rgba(255,255,255,0.1)',
           }}
         >
           <ArrowLeft size={16} />

@@ -1,10 +1,10 @@
 // ============================================================
-// SETTINGS PAGE
+// SETTINGS PAGE — Premium with BLE UUID Config & Theme Pills
 // ============================================================
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
-  Sun, Moon, Monitor, Thermometer, Bluetooth, Info,
-  RotateCcw, Shield, BookOpen, AlertTriangle, Check,
+  Sun, Moon, Monitor, Bluetooth, Info,
+  RotateCcw, Shield, BookOpen, AlertTriangle, ExternalLink,
 } from 'lucide-react';
 import { useAppStore } from '../store/appStore';
 import { useTheme } from '../hooks/useTheme';
@@ -13,12 +13,37 @@ import { showToast } from '../components/ToastContainer';
 const APP_VERSION = '1.0.0-alpha';
 const BUILD_DATE = '2026-10-26';
 
+const DEFAULT_BLE = {
+  serviceUUID: '4fafc201-1fb5-459e-8fcc-c5c9c331914b',
+  txCharUUID: 'beb5483e-36e1-4688-b7f5-ea07361b26a8',
+};
+
+function loadBleConfig() {
+  try {
+    const raw = localStorage.getItem('bleConfig');
+    return raw ? { ...DEFAULT_BLE, ...JSON.parse(raw) } : { ...DEFAULT_BLE };
+  } catch {
+    return { ...DEFAULT_BLE };
+  }
+}
+
+function saveBleConfig(cfg: typeof DEFAULT_BLE) {
+  localStorage.setItem('bleConfig', JSON.stringify(cfg));
+}
+
 export default function SettingsPage() {
   const preferences = useAppStore((s) => s.preferences);
   const setPreference = useAppStore((s) => s.setPreference);
   const resetDemoData = useAppStore((s) => s.resetDemoData);
   const { setTheme } = useTheme();
   const [confirmReset, setConfirmReset] = useState(false);
+
+  // BLE UUID config state (localStorage only, no store change)
+  const [bleConfig, setBleConfig] = useState(loadBleConfig);
+
+  useEffect(() => {
+    saveBleConfig(bleConfig);
+  }, [bleConfig]);
 
   function handleThemeChange(t: 'light' | 'dark' | 'system') {
     setTheme(t);
@@ -38,7 +63,7 @@ export default function SettingsPage() {
         <p>Preferences, information and app configuration</p>
       </div>
 
-      {/* Theme */}
+      {/* ── Theme — Pill Picker ── */}
       <div className="card mb-5">
         <h4 style={{ marginBottom: 'var(--space-4)' }}>Appearance</h4>
 
@@ -47,18 +72,43 @@ export default function SettingsPage() {
             <h5>Theme</h5>
             <p>Choose light, dark, or follow system preference</p>
           </div>
-          <div className="flex gap-2">
-            {[
+          {/* 3 pills instead of a dropdown */}
+          <div
+            style={{
+              display: 'flex',
+              gap: 4,
+              background: 'var(--color-bg-alt)',
+              borderRadius: 'var(--radius-full)',
+              padding: 4,
+              border: '1px solid var(--color-border)',
+            }}
+          >
+            {([
               { value: 'light', icon: Sun, label: 'Light' },
-              { value: 'dark', icon: Moon, label: 'Dark' },
               { value: 'system', icon: Monitor, label: 'System' },
-            ].map(({ value, icon: Icon, label }) => (
+              { value: 'dark', icon: Moon, label: 'Dark' },
+            ] as const).map(({ value, icon: Icon, label }) => (
               <button
                 key={value}
-                className={`btn btn-sm ${preferences.theme === value ? 'btn-primary' : 'btn-secondary'}`}
-                onClick={() => handleThemeChange(value as 'light' | 'dark' | 'system')}
+                onClick={() => handleThemeChange(value)}
                 aria-pressed={preferences.theme === value}
                 title={label}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  padding: '6px 14px',
+                  borderRadius: 'var(--radius-full)',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: 'var(--text-sm)',
+                  fontWeight: preferences.theme === value ? 600 : 400,
+                  background: preferences.theme === value ? 'var(--color-surface)' : 'transparent',
+                  color: preferences.theme === value ? 'var(--color-text-primary)' : 'var(--color-text-tertiary)',
+                  boxShadow: preferences.theme === value ? 'var(--shadow-sm)' : 'none',
+                  transition: 'all var(--transition-fast)',
+                  whiteSpace: 'nowrap',
+                }}
               >
                 <Icon size={14} />
                 <span className="hidden-mobile">{label}</span>
@@ -68,7 +118,69 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      {/* Demo mode */}
+      {/* ── ESP32 BLE UUID Configuration ── */}
+      <div className="card mb-5">
+        <h4 style={{ marginBottom: 'var(--space-4)', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+          <Bluetooth size={18} /> ESP32 BLE Configuration
+        </h4>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+          <div>
+            <label
+              htmlFor="ble-service-uuid"
+              style={{ display: 'block', fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text-primary)', marginBottom: 'var(--space-1)' }}
+            >
+              Service UUID
+            </label>
+            <input
+              id="ble-service-uuid"
+              className="form-input"
+              type="text"
+              placeholder={DEFAULT_BLE.serviceUUID}
+              value={bleConfig.serviceUUID}
+              onChange={(e) => setBleConfig((c: typeof DEFAULT_BLE) => ({ ...c, serviceUUID: e.target.value.trim() }))}
+              spellCheck={false}
+              style={{ fontFamily: 'monospace', fontSize: 'var(--text-sm)' }}
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="ble-tx-uuid"
+              style={{ display: 'block', fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text-primary)', marginBottom: 'var(--space-1)' }}
+            >
+              TX Characteristic UUID
+            </label>
+            <input
+              id="ble-tx-uuid"
+              className="form-input"
+              type="text"
+              placeholder={DEFAULT_BLE.txCharUUID}
+              value={bleConfig.txCharUUID}
+              onChange={(e) => setBleConfig((c: typeof DEFAULT_BLE) => ({ ...c, txCharUUID: e.target.value.trim() }))}
+              spellCheck={false}
+              style={{ fontFamily: 'monospace', fontSize: 'var(--text-sm)' }}
+            />
+          </div>
+
+          <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-tertiary)', margin: 0 }}>
+            Configure the BLE service/characteristic UUIDs matching your ESP32 firmware. Changes are saved automatically.
+          </p>
+
+          <button
+            className="btn btn-secondary btn-sm"
+            style={{ alignSelf: 'flex-start' }}
+            onClick={() => {
+              setBleConfig({ ...DEFAULT_BLE });
+              showToast('BLE UUIDs reset to defaults', 'success');
+            }}
+          >
+            Reset to defaults
+          </button>
+        </div>
+      </div>
+
+      {/* ── Demo mode ── */}
       <div className="card mb-5">
         <h4 style={{ marginBottom: 'var(--space-4)' }}>Operation Mode</h4>
 
@@ -107,7 +219,7 @@ export default function SettingsPage() {
         )}
       </div>
 
-      {/* Device preferences */}
+      {/* ── Device preferences ── */}
       <div className="card mb-5">
         <h4 style={{ marginBottom: 'var(--space-4)' }}>Device Preferences</h4>
 
@@ -116,13 +228,24 @@ export default function SettingsPage() {
             <h5>Temperature Unit</h5>
             <p>Unit for temperature display when a sensor is connected</p>
           </div>
-          <div className="flex gap-2">
+          <div style={{ display: 'flex', gap: 4, background: 'var(--color-bg-alt)', borderRadius: 'var(--radius-full)', padding: 4, border: '1px solid var(--color-border)' }}>
             {(['C', 'F'] as const).map((unit) => (
               <button
                 key={unit}
-                className={`btn btn-sm ${preferences.tempUnit === unit ? 'btn-primary' : 'btn-secondary'}`}
-                onClick={() => setPreference('tempUnit', unit)}
                 aria-pressed={preferences.tempUnit === unit}
+                onClick={() => setPreference('tempUnit', unit)}
+                style={{
+                  padding: '6px 16px',
+                  borderRadius: 'var(--radius-full)',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontWeight: preferences.tempUnit === unit ? 600 : 400,
+                  background: preferences.tempUnit === unit ? 'var(--color-surface)' : 'transparent',
+                  color: preferences.tempUnit === unit ? 'var(--color-text-primary)' : 'var(--color-text-tertiary)',
+                  boxShadow: preferences.tempUnit === unit ? 'var(--shadow-sm)' : 'none',
+                  transition: 'all var(--transition-fast)',
+                  fontSize: 'var(--text-sm)',
+                }}
               >
                 °{unit}
               </button>
@@ -146,7 +269,7 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      {/* Reset */}
+      {/* ── Reset ── */}
       <div className="card mb-5">
         <h4 style={{ marginBottom: 'var(--space-4)' }}>Data Management</h4>
 
@@ -167,7 +290,7 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      {/* Safety */}
+      {/* ── Safety ── */}
       <div className="card mb-5">
         <h4 style={{ marginBottom: 'var(--space-4)', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
           <Shield size={18} /> Safety Information
@@ -188,45 +311,52 @@ export default function SettingsPage() {
         </ul>
       </div>
 
-      {/* About */}
+      {/* ── About ── */}
       <div className="card">
         <h4 style={{ marginBottom: 'var(--space-4)', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
           <BookOpen size={18} /> About
         </h4>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)', fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)' }}>
-          <div className="flex items-center justify-between">
-            <span>App Name</span>
-            <span style={{ color: 'var(--color-text-primary)', fontWeight: 600 }}>Home Automation</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span>Subtitle</span>
-            <span style={{ color: 'var(--color-text-primary)' }}>Bluetooth Smart Living System</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span>Version</span>
-            <span style={{ color: 'var(--color-text-primary)', fontFamily: 'monospace' }}>{APP_VERSION}</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span>Build Date</span>
-            <span style={{ color: 'var(--color-text-primary)', fontFamily: 'monospace' }}>{BUILD_DATE}</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span>Stack</span>
-            <span style={{ color: 'var(--color-text-primary)' }}>React · TypeScript · Vite · Zustand</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span>Target Platform</span>
-            <span style={{ color: 'var(--color-text-primary)' }}>Android (via Capacitor)</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span>Controller</span>
-            <span style={{ color: 'var(--color-text-primary)' }}>ESP32 (model TBC)</span>
-          </div>
+          {[
+            ['App Name', 'Home Automation'],
+            ['Version', APP_VERSION],
+            ['Build Date', BUILD_DATE],
+            ['Stack', 'React · TypeScript · Vite · Zustand'],
+            ['Target Platform', 'Android (via Capacitor)'],
+            ['Controller', 'ESP32 (model TBC)'],
+          ].map(([label, value]) => (
+            <div key={label} className="flex items-center justify-between">
+              <span>{label}</span>
+              <span style={{ color: 'var(--color-text-primary)', fontWeight: label === 'Version' || label === 'Build Date' ? 400 : 600, fontFamily: label === 'Version' || label === 'Build Date' ? 'monospace' : undefined }}>
+                {value}
+              </span>
+            </div>
+          ))}
         </div>
 
         <hr className="divider" />
 
-        <div className="alert info" style={{ fontSize: 'var(--text-xs)' }}>
+        {/* Links */}
+        <div style={{ display: 'flex', gap: 'var(--space-3)', flexWrap: 'wrap' }}>
+          <a
+            href="https://github.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn btn-ghost btn-sm"
+          >
+            <ExternalLink size={13} /> GitHub
+          </a>
+          <a
+            href="https://docs.espressif.com/projects/esp-idf/en/stable/esp32/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn btn-ghost btn-sm"
+          >
+            <ExternalLink size={13} /> ESP32 Docs
+          </a>
+        </div>
+
+        <div className="alert info" style={{ fontSize: 'var(--text-xs)', marginTop: 'var(--space-4)' }}>
           <Info size={14} />
           This is a student capstone project. All hardware integration is prototype-grade.
           Not for use with safety-critical appliances without proper engineering review.
