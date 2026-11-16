@@ -7,7 +7,7 @@ import {
   Home, Layers, Zap, Lightbulb, Wind, Thermometer, Tv,
   Calendar, Bluetooth, Activity, Settings, ChevronLeft,
   ChevronRight, Sun, Moon, Gauge, Sparkles, ArrowLeft,
-  MoreVertical, Bell, Sliders, Info, X,
+  MoreVertical, Bell, Sliders, Info, X, Download,
 } from 'lucide-react';
 import { useTheme } from '../hooks/useTheme';
 import { useAppStore } from '../store/appStore';
@@ -76,10 +76,36 @@ export default function AppShell({ children, onOpen3D }: ShellProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [overflowOpen, setOverflowOpen] = useState(false);
+  const [canInstall, setCanInstall] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { toggle, isDark } = useTheme();
   const activity = useAppStore((s) => s.activity);
+
+  // Check if beforeinstallprompt is ready
+  useEffect(() => {
+    if ((window as unknown as { deferredPrompt?: unknown }).deferredPrompt) {
+      setCanInstall(true);
+    }
+    const handleReady = () => setCanInstall(true);
+    window.addEventListener('pwa-install-ready', handleReady);
+    return () => window.removeEventListener('pwa-install-ready', handleReady);
+  }, []);
+
+  const handleInstallClick = async () => {
+    const promptEvent = (window as unknown as { deferredPrompt?: { prompt: () => Promise<void>; userChoice: Promise<{ outcome: string }> } }).deferredPrompt;
+    if (promptEvent) {
+      promptEvent.prompt();
+      const choice = await promptEvent.userChoice;
+      if (choice.outcome === 'accepted') {
+        setCanInstall(false);
+      }
+      (window as unknown as { deferredPrompt?: unknown }).deferredPrompt = null;
+    } else {
+      alert('To install Home Automation, tap your browser menu (⋮) and select "Add to Home screen" or "Install app".');
+    }
+    setOverflowOpen(false);
+  };
 
   // Page title from path
   const pageTitle = getPageTitle(location.pathname);
@@ -372,6 +398,30 @@ export default function AppShell({ children, onOpen3D }: ShellProps) {
                     <X size={14} />
                   </button>
                 </div>
+                {/* Install App Button */}
+                <button
+                  onClick={handleInstallClick}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 12,
+                    width: '100%',
+                    padding: '12px 16px',
+                    background: 'rgba(16,185,129,0.12)',
+                    border: 'none',
+                    borderBottom: '1px solid var(--color-border)',
+                    color: '#10b981',
+                    fontSize: 14,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    transition: 'background 100ms',
+                  }}
+                >
+                  <Download size={18} style={{ color: '#10b981', flexShrink: 0 }} />
+                  <span>Install App</span>
+                </button>
+
                 {OVERFLOW_MENU.map((item) => {
                   const Icon = item.icon;
                   const isActive = location.pathname === item.to;

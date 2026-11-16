@@ -1,18 +1,46 @@
 {
   "name": "Home Automation",
   "short_name": "HomeAuto",
-  "description": "Bluetooth Smart Living System",
+  "description": "Smart Living System with Bluetooth Control",
+  "id": "/",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#f5f0e8",
-  "theme_color": "#5c7a5e",
+  "display_override": ["standalone", "minimal-ui"],
+  "background_color": "#000000",
+  "theme_color": "#10b981",
   "orientation": "portrait-primary",
+  "categories": ["utilities", "lifestyle"],
   "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
     {
       "src": "/icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "any"
     }
   ]
 }
