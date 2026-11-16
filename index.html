@@ -22,6 +22,12 @@
         } catch(e) {}
       })();
     </script>
+    <link rel="manifest" href="/manifest.json" />
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js').catch(err => console.error('SW registration failed:', err));
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
