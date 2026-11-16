@@ -139,15 +139,17 @@ export default function SchedulesPage() {
   };
 
   return (
-    <div>
-      <div className="page-header">
-        <div className="flex items-center justify-between gap-4">
-          <div>
+    <div style={{ maxWidth: '100%', overflowX: 'hidden' }}>
+      <div className="page-header" style={{ marginBottom: 14 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
+          <div style={{ minWidth: 0 }}>
             <h2>Schedules</h2>
-            <p>{schedules.length} schedule{schedules.length !== 1 ? 's' : ''} defined</p>
+            <p style={{ margin: 0, fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)' }}>
+              {schedules.length} schedule{schedules.length !== 1 ? 's' : ''} defined
+            </p>
           </div>
-          <button className="btn btn-primary" onClick={openNew}>
-            <Plus size={16} /> New Schedule
+          <button className="btn btn-primary" onClick={openNew} style={{ flexShrink: 0, padding: '7px 14px', fontSize: 13, borderRadius: 'var(--radius-full)' }}>
+            <Plus size={15} /> New Schedule
           </button>
         </div>
       </div>
@@ -166,10 +168,12 @@ export default function SchedulesPage() {
           fontSize: 12,
           color: 'var(--color-text-secondary)',
           lineHeight: 1.4,
+          wordBreak: 'break-word',
+          overflowWrap: 'break-word',
         }}
       >
         <AlertTriangle size={13} style={{ color: '#f59e0b', flexShrink: 0, marginTop: 1 }} />
-        <span>
+        <span style={{ wordBreak: 'break-word' }}>
           <strong style={{ color: 'var(--color-text-primary)' }}>App Active Only</strong>
           {' '}— Schedules run only while this app is open. ESP32 RTC-based scheduling is planned.
         </span>

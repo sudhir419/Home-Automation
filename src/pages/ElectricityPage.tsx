@@ -128,14 +128,14 @@ export default function ElectricityPage() {
       </div>
 
       {/* Header */}
-      <div className="page-header" style={{ marginBottom: 'var(--space-6)' }}>
-        <div className="flex items-center justify-between" style={{ flexWrap: 'wrap', gap: 'var(--space-3)' }}>
-          <div>
-            <p style={{ color: 'var(--color-text-tertiary)', fontSize: 'var(--text-sm)', marginBottom: 'var(--space-1)' }}>
+      <div className="page-header" style={{ marginBottom: 'var(--space-4)' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <p style={{ color: 'var(--color-text-tertiary)', fontSize: 'var(--text-xs)', marginBottom: 'var(--space-1)' }}>
               Energy Management & Smart Metering
             </p>
-            <h2 style={{ margin: 0 }}>Electricity Consumption</h2>
-            <p style={{ fontSize: 'var(--text-sm)', marginTop: 'var(--space-1)', color: 'var(--color-text-secondary)' }}>
+            <h2 style={{ margin: 0, wordBreak: 'break-word', overflowWrap: 'break-word' }}>Electricity Consumption</h2>
+            <p style={{ fontSize: 'var(--text-xs)', marginTop: 'var(--space-1)', color: 'var(--color-text-secondary)', wordBreak: 'break-word', overflowWrap: 'break-word' }}>
               Real-time load monitoring, room audits, and appliance-level operation timelines
             </p>
           </div>
@@ -143,19 +143,20 @@ export default function ElectricityPage() {
           {/* Quick Tariff Info Pill */}
           <div
             style={{
-              display: 'flex',
+              display: 'inline-flex',
               alignItems: 'center',
-              gap: 8,
-              padding: '8px 16px',
+              gap: 6,
+              padding: '6px 12px',
               borderRadius: 'var(--radius-full)',
               background: 'var(--color-surface)',
               border: '1px solid var(--color-border)',
-              fontSize: 'var(--text-xs)',
+              fontSize: '11px',
               color: 'var(--color-text-secondary)',
+              flexShrink: 0,
             }}
           >
-            <DollarSign size={14} style={{ color: 'var(--color-accent)' }} />
-            <span>Tariff Rate: <strong>₹{ELECTRICITY_TARIFF_PER_KWH.toFixed(2)}/kWh</strong></span>
+            <DollarSign size={13} style={{ color: 'var(--color-accent)' }} />
+            <span>Tariff: <strong>₹{ELECTRICITY_TARIFF_PER_KWH.toFixed(2)}/kWh</strong></span>
           </div>
         </div>
       </div>
@@ -237,8 +238,8 @@ export default function ElectricityPage() {
         </div>
       </div>
 
-      {/* --- Stat Cards (Row of 4) --- */}
-      <div className="grid-4" style={{ marginBottom: 'var(--space-6)' }}>
+      {/* --- Stat Cards (2×2 Grid on Mobile, 4 Columns on Desktop) --- */}
+      <div className="electricity-stats-grid" style={{ marginBottom: 'var(--space-6)' }}>
         {/* Total Energy Consumed */}
         <div className="stat-card">
           <div className="stat-card-icon" style={{ background: 'var(--color-accent-light)', color: 'var(--color-accent)' }}>

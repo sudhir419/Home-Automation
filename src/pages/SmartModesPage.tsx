@@ -197,15 +197,23 @@ export default function SmartModesPage() {
             >
               {/* Header row */}
               <div
-                style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  cursor: 'pointer',
+                  width: '100%',
+                  minWidth: 0,
+                  boxSizing: 'border-box',
+                }}
                 onClick={() => setExpanded(isExpanded ? null : mode.id)}
               >
                 {/* Icon */}
                 <div
                   style={{
-                    width: 44,
-                    height: 44,
-                    borderRadius: 14,
+                    width: 38,
+                    height: 38,
+                    borderRadius: 12,
                     background: `${mode.color}18`,
                     display: 'flex',
                     alignItems: 'center',
@@ -213,11 +221,11 @@ export default function SmartModesPage() {
                     flexShrink: 0,
                   }}
                 >
-                  <Icon size={20} style={{ color: mode.color }} />
+                  <Icon size={18} style={{ color: mode.color }} />
                 </div>
 
                 {/* Text */}
-                <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
                   <div style={{
                     display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2,
                   }}>
@@ -225,26 +233,28 @@ export default function SmartModesPage() {
                       fontWeight: 600,
                       fontSize: 'var(--text-base)',
                       color: 'var(--color-text-primary)',
+                      whiteSpace: 'nowrap',
                     }}>
                       {mode.name}
                     </span>
                     {isActive && (
                       <span style={{
-                        fontSize: 10,
+                        fontSize: 9,
                         fontWeight: 700,
-                        padding: '2px 7px',
-                        borderRadius: 20,
+                        padding: '1px 6px',
+                        borderRadius: 12,
                         background: `${mode.color}20`,
                         color: mode.color,
                         letterSpacing: '0.03em',
                         textTransform: 'uppercase',
+                        flexShrink: 0,
                       }}>
                         Active
                       </span>
                     )}
                   </div>
                   <p style={{
-                    fontSize: 'var(--text-sm)',
+                    fontSize: 'var(--text-xs)',
                     color: 'var(--color-text-secondary)',
                     margin: 0,
                     whiteSpace: 'nowrap',
@@ -256,16 +266,20 @@ export default function SmartModesPage() {
                 </div>
 
                 {/* Actions */}
-                <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexShrink: 0 }}>
                   <button
                     className={`btn btn-sm ${isActive ? 'btn-secondary' : 'btn-primary'}`}
                     onClick={(e) => { e.stopPropagation(); activateMode(mode.id); }}
                     disabled={isActivating || isActive}
                     style={{
-                      minWidth: 76,
+                      padding: '6px 12px',
+                      borderRadius: 'var(--radius-full)',
                       background: isActive ? undefined : mode.color,
                       borderColor: isActive ? undefined : mode.color,
+                      color: '#FFFFFF',
                       fontSize: 12,
+                      fontWeight: 600,
+                      flexShrink: 0,
                     }}
                   >
                     {isActivating ? (
@@ -294,6 +308,7 @@ export default function SmartModesPage() {
                       color: 'var(--color-text-tertiary)',
                       transform: isExpanded ? 'rotate(90deg)' : 'none',
                       transition: 'transform 200ms ease',
+                      flexShrink: 0,
                     }}
                   />
                 </div>

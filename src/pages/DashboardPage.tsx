@@ -119,59 +119,8 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* ── Stats Grid (Responsive 2×2 on Desktop, Clean Stacked on Mobile) ── */}
-      <div
-        className="mobile-dashboard-stats"
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-          gap: 'var(--space-3)',
-          marginBottom: 'var(--space-5)',
-        }}
-      >
-        <div className="stat-card glass-card">
-          <div className="stat-card-icon" style={{ background: 'var(--color-accent-light)', color: 'var(--color-accent)' }}>
-            <Zap size={20} aria-hidden="true" />
-          </div>
-          <div className="stat-card-value">{stats.total}</div>
-          <div className="stat-card-label">Configured Devices</div>
-        </div>
-
-        <div className="stat-card glass-card">
-          <div className="stat-card-icon" style={{ background: 'var(--color-state-on-bg)', color: 'var(--color-state-on)' }}>
-            <Lightbulb size={20} aria-hidden="true" />
-          </div>
-          <div className="stat-card-value">{stats.onCount}</div>
-          <div className="stat-card-label">Devices ON</div>
-        </div>
-
-        <div className="stat-card glass-card">
-          <div
-            className="stat-card-icon"
-            style={{
-              background: isConnected ? 'var(--color-success-bg)' : 'var(--color-state-off-bg)',
-              color: isConnected ? 'var(--color-on-success)' : 'var(--color-text-tertiary)',
-            }}
-          >
-            {isConnected ? <Wifi size={20} aria-hidden="true" /> : <WifiOff size={20} aria-hidden="true" />}
-          </div>
-          <div className="stat-card-value" style={{ fontSize: 'var(--text-xl)' }}>
-            {bluetooth.status === 'connected' ? 'Online' : 'Offline'}
-          </div>
-          <div className="stat-card-label">BT Status</div>
-        </div>
-
-        <div className="stat-card glass-card">
-          <div className="stat-card-icon" style={{ background: 'var(--color-info-bg)', color: 'var(--color-on-info)' }}>
-            <Calendar size={20} aria-hidden="true" />
-          </div>
-          <div className="stat-card-value">{stats.upcoming}</div>
-          <div className="stat-card-label">Active Schedules</div>
-        </div>
-      </div>
-
-      {/* ── Quick Actions ── */}
-      <div className="section-header" style={{ marginBottom: 'var(--space-3)' }}>
+      {/* ── Quick Actions (Placed ABOVE Statistics for Instant Control) ── */}
+      <div className="section-header" style={{ marginBottom: 'var(--space-2)' }}>
         <h3>Quick Actions</h3>
       </div>
       <div
@@ -278,6 +227,57 @@ export default function DashboardPage() {
           <Bluetooth size={16} />
           Bluetooth
         </Link>
+      </div>
+
+      {/* ── Stats Grid (Responsive 2×2 on Desktop & 2×2 on Mobile) ── */}
+      <div
+        className="mobile-dashboard-stats"
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+          gap: 'var(--space-3)',
+          marginBottom: 'var(--space-5)',
+        }}
+      >
+        <div className="stat-card glass-card">
+          <div className="stat-card-icon" style={{ background: 'var(--color-accent-light)', color: 'var(--color-accent)' }}>
+            <Zap size={20} aria-hidden="true" />
+          </div>
+          <div className="stat-card-value">{stats.total}</div>
+          <div className="stat-card-label">Configured Devices</div>
+        </div>
+
+        <div className="stat-card glass-card">
+          <div className="stat-card-icon" style={{ background: 'var(--color-state-on-bg)', color: 'var(--color-state-on)' }}>
+            <Lightbulb size={20} aria-hidden="true" />
+          </div>
+          <div className="stat-card-value">{stats.onCount}</div>
+          <div className="stat-card-label">Devices ON</div>
+        </div>
+
+        <div className="stat-card glass-card">
+          <div
+            className="stat-card-icon"
+            style={{
+              background: isConnected ? 'var(--color-success-bg)' : 'var(--color-state-off-bg)',
+              color: isConnected ? 'var(--color-on-success)' : 'var(--color-text-tertiary)',
+            }}
+          >
+            {isConnected ? <Wifi size={20} aria-hidden="true" /> : <WifiOff size={20} aria-hidden="true" />}
+          </div>
+          <div className="stat-card-value" style={{ fontSize: 'var(--text-xl)' }}>
+            {bluetooth.status === 'connected' ? 'Online' : 'Offline'}
+          </div>
+          <div className="stat-card-label">BT Status</div>
+        </div>
+
+        <div className="stat-card glass-card">
+          <div className="stat-card-icon" style={{ background: 'var(--color-info-bg)', color: 'var(--color-on-info)' }}>
+            <Calendar size={20} aria-hidden="true" />
+          </div>
+          <div className="stat-card-value">{stats.upcoming}</div>
+          <div className="stat-card-label">Active Schedules</div>
+        </div>
       </div>
 
       {/* ── Supported HW device section ── */}

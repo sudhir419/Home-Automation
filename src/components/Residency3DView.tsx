@@ -75,11 +75,11 @@ export default function Residency3DView({ onBackToHome, onBackToIntro }: Props) 
 
     // --- 2. Camera Setup (Responsive, Perfectly Framed for 9:16 Mobile Viewports) ---
     const isMobile = window.innerWidth < 768;
-    const camera = new THREE.PerspectiveCamera(isMobile ? 36 : 42, width / height, 0.1, 100);
-    camera.position.set(0, isMobile ? 1.6 : 1.4, isMobile ? 8.2 : 5.8);
-    camera.fov = isMobile ? 36 : 42;
+    const camera = new THREE.PerspectiveCamera(isMobile ? 40 : 42, width / height, 0.1, 100);
+    camera.position.set(0, isMobile ? 1.7 : 1.4, isMobile ? 9.2 : 5.8);
+    camera.fov = isMobile ? 40 : 42;
     camera.updateProjectionMatrix();
-    camera.lookAt(0, isMobile ? 0.2 : 0.1, 0);
+    camera.lookAt(0, isMobile ? 0.15 : 0.1, 0);
 
     // --- 3. WebGL Renderer with High-Def Antialiasing & Tone Mapping ---
     const renderer = new THREE.WebGLRenderer({
@@ -769,8 +769,10 @@ export default function Residency3DView({ onBackToHome, onBackToIntro }: Props) 
       houseGroup.rotation.x = stateRef.current.userRotationX;
       houseGroup.position.y = Math.sin(t * 1.5) * 0.04;
 
-      // In orbital appliance mode, the house shrinks gracefully to become the central glowing hub
-      const houseScale = THREE.MathUtils.lerp(1.0, 0.58, ease);
+      // In normal mode on mobile, scale house gracefully (0.82) to fit viewport;
+      // in orbital mode, house shrinks to become the central glowing hub
+      const baseHouseScale = isMobile ? 0.82 : 1.0;
+      const houseScale = THREE.MathUtils.lerp(baseHouseScale, baseHouseScale * 0.52, ease);
       houseGroup.scale.setScalar(houseScale);
 
       // --- Solar System Orbital Revolution ---
@@ -780,7 +782,7 @@ export default function Residency3DView({ onBackToHome, onBackToIntro }: Props) 
         // Slow, elegant, fluid planetary revolution speed (approx 28 seconds per full orbit)
         const orbitSpeed = 0.22;
         const currentRevolutionAngle = t * orbitSpeed + stateRef.current.userRotationY * 0.4;
-        const targetRadius = 2.45 * ease;
+        const targetRadius = (isMobile ? 1.55 : 2.45) * ease;
 
         // Spin ceiling fan blades smoothly
         fanBladesRotor.rotation.y += 0.09;
@@ -801,7 +803,7 @@ export default function Residency3DView({ onBackToHome, onBackToIntro }: Props) 
           const yBob = Math.sin(t * 2.0 + i * 1.05) * 0.04;
 
           holder.position.set(x, yBob, z);
-          holder.scale.setScalar(ease);
+          holder.scale.setScalar((isMobile ? 0.78 : 1.0) * ease);
 
           // Rotate each appliance to face slightly tangent or outward for optimal visibility
           holder.rotation.y = -theta + Math.PI / 2 + Math.sin(t * 1.2 + i) * 0.1;
@@ -847,9 +849,9 @@ export default function Residency3DView({ onBackToHome, onBackToIntro }: Props) 
       height = container.clientHeight || window.innerHeight;
       const mobile = window.innerWidth < 768;
       camera.aspect = width / height;
-      camera.fov = mobile ? 36 : 42;
-      camera.position.set(0, mobile ? 1.6 : 1.4, mobile ? 8.2 : 5.8);
-      camera.lookAt(0, mobile ? 0.2 : 0.1, 0);
+      camera.fov = mobile ? 40 : 42;
+      camera.position.set(0, mobile ? 1.7 : 1.4, mobile ? 9.2 : 5.8);
+      camera.lookAt(0, mobile ? 0.15 : 0.1, 0);
       camera.updateProjectionMatrix();
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, mobile ? 1.5 : 2.0));
       renderer.setSize(width, height);
@@ -907,12 +909,13 @@ export default function Residency3DView({ onBackToHome, onBackToIntro }: Props) 
           top: 0,
           left: 0,
           right: 0,
-          padding: 'var(--space-6) var(--space-8)',
+          padding: '16px 20px',
           zIndex: 20,
+          gap: 12,
         }}
       >
-        {/* Left Side: Back to Home Button & Status Pill */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', flexWrap: 'wrap' }}>
+        {/* Left Side: Back to Home Button Only (Information badge removed per specification) */}
+        <div style={{ display: 'flex', alignItems: 'center' }}>
           <button
             type="button"
             onClick={onBackToIntro || onBackToHome}
@@ -931,25 +934,17 @@ export default function Residency3DView({ onBackToHome, onBackToIntro }: Props) 
               backdropFilter: 'blur(12px)',
               boxShadow: '0 4px 16px rgba(0,0,0,0.35)',
               transition: 'all 0.2s ease',
+              whiteSpace: 'nowrap',
+              flexShrink: 0,
             }}
             title="Go back to Home Page"
           >
             <ArrowLeft size={15} style={{ color: '#34d399' }} />
             <span>Back to Home</span>
           </button>
-
-          {/* Status Pill */}
-          <div className="residency-status-pill">
-            <span className="pulsing-green-dot" />
-            <span className="status-label">
-              {mode === 'house'
-                ? '3D SMART RESIDENCE · DOUBLE-CLICK HOME ICON'
-                : 'SOLAR SYSTEM ORBIT · 6 REVOLVING APPLIANCES'}
-            </span>
-          </div>
         </div>
 
-        {/* Top-Right: Return to 3D Home Button (Preserved exactly) */}
+        {/* Top-Right: Return to 3D Home Button or Compact Single-Line Orbit Instruction */}
         {mode === 'appliances' ? (
           <button
             type="button"
@@ -958,17 +953,20 @@ export default function Residency3DView({ onBackToHome, onBackToIntro }: Props) 
               display: 'inline-flex',
               alignItems: 'center',
               gap: 8,
-              padding: '9px 20px',
+              padding: '8px 16px',
               borderRadius: 'var(--radius-full)',
               background: 'rgba(6, 30, 20, 0.85)',
               border: '1px solid rgba(52, 211, 153, 0.45)',
               color: '#a7f3d0',
-              fontSize: 'var(--text-xs)',
+              fontSize: '11px',
               fontWeight: 600,
               cursor: 'pointer',
               backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
               boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
               transition: 'all 0.2s ease',
+              whiteSpace: 'nowrap',
+              flexShrink: 0,
             }}
             title="Return to 3D Home view"
           >
@@ -980,19 +978,23 @@ export default function Residency3DView({ onBackToHome, onBackToIntro }: Props) 
             style={{
               padding: '8px 16px',
               borderRadius: 'var(--radius-full)',
-              background: 'rgba(6, 30, 20, 0.65)',
-              border: '1px solid rgba(52, 211, 153, 0.25)',
+              background: 'rgba(6, 30, 20, 0.75)',
+              border: '1px solid rgba(52, 211, 153, 0.35)',
               color: '#a7f3d0',
               fontSize: '11px',
               fontWeight: 600,
-              letterSpacing: '0.04em',
-              backdropFilter: 'blur(10px)',
+              letterSpacing: '0.02em',
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
               display: 'flex',
               alignItems: 'center',
               gap: 6,
+              whiteSpace: 'nowrap',
+              flexShrink: 0,
+              boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
             }}
           >
-            <Sparkles size={13} style={{ color: '#34d399' }} />
+            <Sparkles size={13} style={{ color: '#34d399', flexShrink: 0 }} />
             <span>Double-Click or Double-Tap House to Orbit</span>
           </div>
         )}
@@ -1130,15 +1132,14 @@ export default function Residency3DView({ onBackToHome, onBackToIntro }: Props) 
         style={{
           position: 'absolute',
           bottom: 'calc(24px + env(safe-area-inset-bottom, 0px))',
-          left: '50%',
-          transform: 'translateX(-50%)',
+          left: 20,
+          right: 20,
           zIndex: 40,
           pointerEvents: 'auto',
-          width: 'calc(100% - 48px)',
-          maxWidth: 360,
+          maxWidth: 340,
+          margin: '0 auto',
           display: 'flex',
           justifyContent: 'center',
-          animation: 'card-appear 0.4s ease both',
         }}
         onClick={(e) => e.stopPropagation()}
       >
