@@ -2,11 +2,12 @@
 // APP SHELL — Sidebar, top bar, mobile nav (Premium Redesign)
 // ============================================================
 import { useState, useEffect, useRef } from 'react';
-import { NavLink, Link, useLocation } from 'react-router-dom';
+import { NavLink, Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   Home, Layers, Zap, Lightbulb, Wind, Thermometer, Tv,
   Calendar, Bluetooth, Activity, Settings, ChevronLeft,
   ChevronRight, Sun, Moon, Gauge, Sparkles, ArrowLeft,
+  MoreVertical, Bell, Sliders, Info, X,
 } from 'lucide-react';
 import { useTheme } from '../hooks/useTheme';
 import { useAppStore } from '../store/appStore';
@@ -20,7 +21,7 @@ const NAV_GROUPS = [
       { to: '/', icon: Home, label: 'Overview', exact: true },
       { to: '/rooms', icon: Layers, label: 'Rooms' },
       { to: '/devices', icon: Zap, label: 'All Devices' },
-      { to: '/electricity', icon: Gauge, label: 'Electricity Consumption' },
+      { to: '/electricity', icon: Gauge, label: 'Electricity' },
     ],
   },
   {
@@ -37,6 +38,8 @@ const NAV_GROUPS = [
       { to: '/schedules', icon: Calendar, label: 'Schedules' },
       { to: '/bluetooth', icon: Bluetooth, label: 'Bluetooth' },
       { to: '/activity', icon: Activity, label: 'Activity' },
+      { to: '/smart-modes', icon: Sliders, label: 'Smart Modes' },
+      { to: '/notifications', icon: Bell, label: 'Notifications' },
     ],
   },
   {
@@ -49,10 +52,19 @@ const NAV_GROUPS = [
 
 const BOTTOM_NAV = [
   { to: '/', icon: Home, label: 'Home', exact: true },
+  { to: '/rooms', icon: Layers, label: 'Rooms' },
   { to: '/devices', icon: Zap, label: 'Devices' },
-  { to: '/schedules', icon: Calendar, label: 'Automations' },
   { to: '/bluetooth', icon: Bluetooth, label: 'Bluetooth' },
   { to: '/settings', icon: Settings, label: 'More' },
+];
+
+// 3-dot overflow menu items
+const OVERFLOW_MENU = [
+  { to: '/smart-modes', icon: Sliders, label: 'Smart Modes' },
+  { to: '/notifications', icon: Bell, label: 'Notifications' },
+  { to: '/schedules', icon: Calendar, label: 'Schedules' },
+  { to: '/activity', icon: Activity, label: 'Activity Log' },
+  { to: '/electricity', icon: Gauge, label: 'Electricity' },
 ];
 
 interface ShellProps {
@@ -63,11 +75,17 @@ interface ShellProps {
 export default function AppShell({ children, onOpen3D }: ShellProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [overflowOpen, setOverflowOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const { toggle, isDark } = useTheme();
+  const activity = useAppStore((s) => s.activity);
 
   // Page title from path
   const pageTitle = getPageTitle(location.pathname);
+
+  // Unread notifications count
+  const unreadCount = activity.filter((e) => e.level === 'warning' || e.level === 'error').length;
 
   // ── Floating pill sliding-indicator ──────────────────────────
   const activeIndex = BOTTOM_NAV.findIndex((item) =>
@@ -89,6 +107,24 @@ export default function AppShell({ children, onOpen3D }: ShellProps) {
     pill.style.transform = `translateX(${itemRect.left - parentRect.left}px)`;
     pill.style.width = `${itemRect.width}px`;
   }, [activeIndex, location.pathname]);
+
+  // Close overflow menu on route change
+  useEffect(() => {
+    setOverflowOpen(false);
+  }, [location.pathname]);
+
+  // Close overflow on outside click
+  const overflowRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!overflowOpen) return;
+    function handleClick(e: MouseEvent) {
+      if (overflowRef.current && !overflowRef.current.contains(e.target as Node)) {
+        setOverflowOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [overflowOpen]);
 
   // ── Theme-aware pill styles ───────────────────────────────────
   const navBg = isDark
@@ -124,188 +160,78 @@ export default function AppShell({ children, onOpen3D }: ShellProps) {
                 <span
                   style={{
                     fontSize: '10px',
-                    padding: '2px 7px',
+                    padding: '1px 6px',
                     borderRadius: 'var(--radius-full)',
-                    background: 'var(--color-highlight-light)',
-                    color: 'var(--color-highlight)',
-                    fontWeight: 700,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.04em'
+                    background: 'rgba(16,185,129,0.15)',
+                    color: '#10b981',
+                    fontWeight: 600,
+                    letterSpacing: '0.03em',
                   }}
                 >
-                  Profile
+                  BETA
                 </span>
               </div>
-              <span>Smart Living &middot; Resident MR</span>
+              <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-tertiary)', marginTop: 1 }}>
+                ESP32 · Smart Home
+              </p>
             </div>
           )}
         </div>
 
-        <nav className="sidebar-nav" aria-label="Navigation">
+        {/* Nav groups */}
+        <nav className="sidebar-nav" aria-label="Sidebar navigation">
           {NAV_GROUPS.map((group) => (
-            <div key={group.label}>
-              {!collapsed && (
-                <div className="sidebar-section-label">{group.label}</div>
-              )}
+            <div key={group.label} className="nav-group">
+              {!collapsed && <div className="nav-group-label">{group.label}</div>}
               {group.items.map((item) => (
                 <NavLink
                   key={item.to}
                   to={item.to}
                   end={item.exact}
-                  className={({ isActive }) =>
-                    `nav-item ${isActive ? 'active' : ''}`
-                  }
-                  aria-label={item.label}
+                  className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
                   title={collapsed ? item.label : undefined}
                 >
                   <item.icon size={18} aria-hidden="true" />
-                  {!collapsed && <span>{item.label}</span>}
+                  {!collapsed && <span className="nav-label">{item.label}</span>}
                 </NavLink>
               ))}
             </div>
           ))}
         </nav>
 
-        <div className="sidebar-footer">
-          <button
-            className="btn btn-ghost btn-icon"
-            onClick={() => setCollapsed((c) => !c)}
-            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          >
-            {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
-          </button>
-        </div>
+        {/* Collapse toggle */}
+        <button
+          className="sidebar-collapse-btn"
+          onClick={() => setCollapsed((c) => !c)}
+          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        >
+          {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+        </button>
       </aside>
 
-      {/* === Desktop Top Bar === */}
-      <header className={`topbar ${collapsed ? 'sidebar-collapsed' : ''}`}>
-        <div className="topbar-left" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+      {/* === Desktop/tablet Top Bar === */}
+      <header className="topbar" aria-label="Application header">
+        <div className="topbar-left">
           {location.pathname !== '/' && (
-            <Link
-              to="/"
+            <button
               className="btn btn-ghost btn-sm"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 6,
-                padding: '4px 12px',
-                borderRadius: 'var(--radius-full)',
-                fontSize: 'var(--text-xs)',
-                fontWeight: 600,
-                color: 'var(--color-text-secondary)',
-                border: '1px solid var(--color-border)',
-                background: 'var(--color-surface)',
-              }}
-              title="Back to Home Overview"
+              onClick={() => navigate(-1)}
+              aria-label="Go back"
+              style={{ padding: '6px 8px' }}
             >
-              <ArrowLeft size={14} />
-              <span>Back to Home</span>
-            </Link>
+              <ArrowLeft size={18} />
+            </button>
           )}
-          <span className="topbar-breadcrumb">{pageTitle}</span>
+          <h2 className="topbar-title">{pageTitle}</h2>
         </div>
         <div className="topbar-right">
           {onOpen3D && (
             <button
-              className="btn btn-secondary btn-sm"
+              className="btn btn-ghost btn-sm"
               onClick={onOpen3D}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 6,
-                padding: '5px 12px',
-                fontSize: 'var(--text-xs)',
-                fontWeight: 600,
-                borderRadius: 'var(--radius-full)',
-              }}
-              title="Experience 3D Smart Home & Appliances"
-            >
-              <Sparkles size={14} style={{ color: 'var(--color-accent)' }} />
-              <span>3D Home</span>
-            </button>
-          )}
-          <button
-            className="user-profile-btn"
-            onClick={() => setProfileOpen(true)}
-            aria-label="View resident profile"
-            title="Resident Profile"
-          >
-            <div className="user-avatar-badge">MR</div>
-            <span style={{ fontSize: 'var(--text-xs)', fontWeight: 600 }}>Resident</span>
-          </button>
-          <BluetoothBadge />
-          <button className="theme-toggle" onClick={toggle} aria-label="Toggle theme">
-            {isDark ? <Sun size={16} /> : <Moon size={16} />}
-          </button>
-        </div>
-      </header>
-
-      {/* === Mobile Top Bar === */}
-      <header
-        className="mobile-topbar"
-        aria-label="Mobile navigation"
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: 60,
-          zIndex: 100,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '0 16px',
-          backdropFilter: 'blur(20px) saturate(180%)',
-          WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-          background: isDark ? 'rgba(0,0,0,0.85)' : 'rgba(255,255,255,0.85)',
-          borderBottom: isDark
-            ? '1px solid rgba(255,255,255,0.08)'
-            : '1px solid rgba(0,0,0,0.06)',
-          boxShadow: '0 1px 12px rgba(0,0,0,0.1)',
-        }}
-      >
-        {/* Left: App Title */}
-        <span
-          style={{
-            fontFamily: 'var(--font-heading)',
-            fontWeight: 700,
-            fontSize: '1.1rem',
-            color: 'var(--color-text-primary)',
-            letterSpacing: '-0.02em',
-          }}
-        >
-          Home Auto
-        </span>
-
-        {/* Right: 3D button, BT badge, theme toggle */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          {onOpen3D && (
-            <button
-              onClick={onOpen3D}
-              title="3D Smart Home & Appliances"
-              aria-label="Open 3D Home"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: 36,
-                height: 36,
-                borderRadius: '50%',
-                border: 'none',
-                background: isDark
-                  ? 'rgba(16,185,129,0.15)'
-                  : 'rgba(16,185,129,0.1)',
-                color: '#10b981',
-                cursor: 'pointer',
-                transition: 'background 150ms ease, transform 150ms ease',
-              }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.08)';
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)';
-              }}
+              aria-label="Open 3D view"
+              title="Open 3D Residency View"
+              style={{ gap: 'var(--space-1)' }}
             >
               <Sparkles size={18} />
             </button>
@@ -321,14 +247,174 @@ export default function AppShell({ children, onOpen3D }: ShellProps) {
         </div>
       </header>
 
+      {/* === Mobile Top Bar === */}
+      <header className="mobile-topbar" aria-label="Mobile application header">
+        {/* Left: Back or Logo */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+          {location.pathname !== '/' ? (
+            <button
+              style={{
+                background: 'none', border: 'none', cursor: 'pointer',
+                padding: '6px', borderRadius: 10,
+                color: 'var(--color-text-primary)',
+                display: 'flex', alignItems: 'center',
+              }}
+              onClick={() => navigate(-1)}
+              aria-label="Go back"
+            >
+              <ArrowLeft size={20} />
+            </button>
+          ) : (
+            <div style={{ width: 8 }} />
+          )}
+          <span style={{
+            fontWeight: 700,
+            fontSize: 17,
+            color: 'var(--color-text-primary)',
+            letterSpacing: '-0.01em',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}>
+            {location.pathname === '/' ? 'Home Auto' : pageTitle}
+          </span>
+        </div>
+
+        {/* Right: BT badge, theme, 3D, 3-dot menu */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+          {onOpen3D && (
+            <button
+              style={{
+                background: 'none', border: 'none', cursor: 'pointer',
+                padding: '6px', borderRadius: 10,
+                color: 'var(--color-text-secondary)',
+                display: 'flex', alignItems: 'center',
+              }}
+              onClick={onOpen3D}
+              aria-label="Open 3D view"
+            >
+              <Sparkles size={18} />
+            </button>
+          )}
+          <BluetoothBadge compact />
+          <button
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              padding: '6px', borderRadius: 10,
+              color: 'var(--color-text-secondary)',
+              display: 'flex', alignItems: 'center',
+            }}
+            onClick={toggle}
+            aria-label="Toggle theme"
+          >
+            {isDark ? <Sun size={18} /> : <Moon size={18} />}
+          </button>
+
+          {/* 3-dot overflow menu trigger */}
+          <div ref={overflowRef} style={{ position: 'relative' }}>
+            <button
+              style={{
+                background: 'none', border: 'none', cursor: 'pointer',
+                padding: '6px', borderRadius: 10,
+                color: 'var(--color-text-secondary)',
+                display: 'flex', alignItems: 'center',
+                position: 'relative',
+              }}
+              onClick={() => setOverflowOpen((o) => !o)}
+              aria-label="More options"
+              aria-expanded={overflowOpen}
+            >
+              <MoreVertical size={20} />
+              {/* Unread dot */}
+              {unreadCount > 0 && (
+                <span style={{
+                  position: 'absolute', top: 4, right: 4,
+                  width: 7, height: 7, borderRadius: '50%',
+                  background: '#ef4444',
+                }} />
+              )}
+            </button>
+
+            {/* Dropdown */}
+            {overflowOpen && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 'calc(100% + 8px)',
+                  right: 0,
+                  minWidth: 200,
+                  borderRadius: 16,
+                  background: isDark
+                    ? 'rgba(18,18,18,0.95)'
+                    : 'rgba(255,255,255,0.97)',
+                  backdropFilter: 'blur(20px)',
+                  WebkitBackdropFilter: 'blur(20px)',
+                  border: '1px solid var(--color-border)',
+                  boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
+                  zIndex: 500,
+                  overflow: 'hidden',
+                  animation: 'fadeInDown 150ms ease',
+                }}
+              >
+                {/* Header row */}
+                <div style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  padding: '10px 14px 8px',
+                  borderBottom: '1px solid var(--color-border)',
+                }}>
+                  <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-text-tertiary)' }}>
+                    More
+                  </span>
+                  <button
+                    onClick={() => setOverflowOpen(false)}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: 'var(--color-text-tertiary)' }}
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+                {OVERFLOW_MENU.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = location.pathname === item.to;
+                  return (
+                    <NavLink
+                      key={item.to}
+                      to={item.to}
+                      onClick={() => setOverflowOpen(false)}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 12,
+                        padding: '12px 16px',
+                        textDecoration: 'none',
+                        color: isActive ? '#10b981' : 'var(--color-text-primary)',
+                        background: isActive ? 'rgba(16,185,129,0.08)' : 'transparent',
+                        fontSize: 14, fontWeight: isActive ? 600 : 400,
+                        transition: 'background 100ms',
+                      }}
+                    >
+                      <Icon size={17} style={{ color: isActive ? '#10b981' : 'var(--color-text-secondary)', flexShrink: 0 }} />
+                      {item.label}
+                      {item.to === '/notifications' && unreadCount > 0 && (
+                        <span style={{
+                          marginLeft: 'auto', background: '#ef4444', color: '#fff',
+                          borderRadius: 10, fontSize: 10, fontWeight: 700,
+                          padding: '1px 6px', minWidth: 18, textAlign: 'center',
+                        }}>
+                          {unreadCount}
+                        </span>
+                      )}
+                    </NavLink>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      </header>
+
       {/* === Main Content === */}
       <main
         className={`main-content page-enter ${collapsed ? 'sidebar-collapsed' : ''}`}
         id="main-content"
         aria-label="Page content"
-        style={{
-          // Mobile overrides are via CSS; inline for safety
-        }}
       >
         {children}
       </main>
@@ -349,7 +435,6 @@ export default function AppShell({ children, onOpen3D }: ShellProps) {
           background: navBg,
           border: navBorder,
           boxShadow: '0 8px 32px rgba(0,0,0,0.2), 0 2px 8px rgba(0,0,0,0.1)',
-          paddingBottom: 'env(safe-area-inset-bottom, 0px)',
         }}
       >
         {/* Animated sliding indicator pill */}
@@ -375,7 +460,8 @@ export default function AppShell({ children, onOpen3D }: ShellProps) {
             display: 'flex',
             justifyContent: 'space-evenly',
             alignItems: 'stretch',
-            padding: '10px 4px 10px',
+            padding: '8px 4px',
+            paddingBottom: 'calc(8px + env(safe-area-inset-bottom, 0px))',
             position: 'relative',
           }}
         >
@@ -392,20 +478,21 @@ export default function AppShell({ children, onOpen3D }: ShellProps) {
                 flexDirection: 'column',
                 alignItems: 'center',
                 gap: 3,
-                padding: '4px 14px',
+                padding: '4px 12px',
                 borderRadius: 20,
                 textDecoration: 'none',
                 color: isActive ? '#10b981' : 'var(--color-text-secondary)',
                 transition: 'color 200ms ease',
-                minWidth: 52,
+                minWidth: 48,
                 position: 'relative',
                 zIndex: 1,
+                flex: 1,
               })}
             >
               {({ isActive }) => (
                 <>
                   <item.icon
-                    size={22}
+                    size={21}
                     aria-hidden="true"
                     style={{
                       color: isActive ? '#10b981' : 'var(--color-text-secondary)',
@@ -429,6 +516,13 @@ export default function AppShell({ children, onOpen3D }: ShellProps) {
           ))}
         </div>
       </nav>
+
+      <style>{`
+        @keyframes fadeInDown {
+          from { opacity: 0; transform: translateY(-6px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
     </div>
   );
 }
@@ -447,7 +541,7 @@ function getPageTitle(path: string): string {
     '/': 'Overview',
     '/rooms': 'Rooms',
     '/devices': 'All Devices',
-    '/electricity': 'Electricity Consumption',
+    '/electricity': 'Electricity',
     '/lighting': 'Lighting',
     '/climate': 'Climate',
     '/entertainment': 'Entertainment',
@@ -455,6 +549,8 @@ function getPageTitle(path: string): string {
     '/bluetooth': 'Bluetooth',
     '/activity': 'Activity',
     '/settings': 'Settings',
+    '/smart-modes': 'Smart Modes',
+    '/notifications': 'Notifications',
   };
-  return map[path] ?? 'Home Automation';
+  return map[path] ?? 'Home Auto';
 }

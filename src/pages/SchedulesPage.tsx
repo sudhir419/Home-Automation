@@ -152,14 +152,27 @@ export default function SchedulesPage() {
         </div>
       </div>
 
-      {/* Scope notice */}
-      <div className="alert warning mb-6">
-        <AlertTriangle size={16} />
-        <div>
-          <strong>App Active Only</strong> — Schedules run only while this app is open and foregrounded.
-          For reliable off-app scheduling, the ESP32 firmware must implement its own RTC-based timer.
-          This is planned but not yet implemented.
-        </div>
+      {/* Scope notice — compact */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'flex-start',
+          gap: 8,
+          padding: '8px 12px',
+          borderRadius: 10,
+          background: 'rgba(245,158,11,0.08)',
+          border: '1px solid rgba(245,158,11,0.2)',
+          marginBottom: 16,
+          fontSize: 12,
+          color: 'var(--color-text-secondary)',
+          lineHeight: 1.4,
+        }}
+      >
+        <AlertTriangle size={13} style={{ color: '#f59e0b', flexShrink: 0, marginTop: 1 }} />
+        <span>
+          <strong style={{ color: 'var(--color-text-primary)' }}>App Active Only</strong>
+          {' '}— Schedules run only while this app is open. ESP32 RTC-based scheduling is planned.
+        </span>
       </div>
 
       {/* Schedule list */}
@@ -188,52 +201,45 @@ export default function SchedulesPage() {
                 </div>
 
                 {/* Info */}
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div className="flex items-center gap-2" style={{ flexWrap: 'wrap' }}>
-                    <span style={{ fontWeight: 600, fontSize: 'var(--text-sm)', color: 'var(--color-text-primary)' }}>
+                <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'nowrap', marginBottom: 2 }}>
+                    <span style={{ fontWeight: 600, fontSize: 13, color: 'var(--color-text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 140 }}>
                       {sched.name}
                     </span>
                     {!sched.enabled && (
-                      <span className="badge" style={{ background: 'var(--color-state-off-bg)', color: 'var(--color-text-tertiary)' }}>
-                        Paused
+                      <span style={{ fontSize: 9, fontWeight: 700, padding: '1px 5px', borderRadius: 8, background: 'var(--color-state-off-bg)', color: 'var(--color-text-tertiary)', flexShrink: 0 }}>
+                        PAUSED
                       </span>
                     )}
-                    <span className={`device-status-badge ${sched.action === 'on' ? 'on' : 'off'}`}>
-                      <Power size={9} />
+                    <span className={`device-status-badge ${sched.action === 'on' ? 'on' : 'off'}`} style={{ flexShrink: 0 }}>
+                      <Power size={8} />
                       {sched.action.toUpperCase()}
                     </span>
                   </div>
-                  <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-tertiary)', marginTop: 4 }}>
+                  <div style={{ fontSize: 11, color: 'var(--color-text-tertiary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {devNames || 'No devices'} · {repeatLabel}
-                    {sched.days.length < 7 && sched.repeat !== 'once' && (
-                      <> · {sched.days.map((d) => DAYS[d]).join(', ')}</>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-1 mt-1">
-                    <Clock size={11} style={{ color: 'var(--color-text-disabled)' }} />
-                    <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-disabled)' }}>
-                      App active only
-                    </span>
                   </div>
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center gap-2">
+                <div style={{ display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}>
                   <button
                     className="btn btn-ghost btn-icon"
                     onClick={() => toggleSchedule(sched.id)}
                     aria-label={sched.enabled ? `Pause ${sched.name}` : `Resume ${sched.name}`}
                     title={sched.enabled ? 'Pause' : 'Resume'}
+                    style={{ padding: '6px' }}
                   >
-                    {sched.enabled ? <Pause size={16} /> : <Play size={16} />}
+                    {sched.enabled ? <Pause size={15} /> : <Play size={15} />}
                   </button>
                   <button
                     className="btn btn-ghost btn-icon"
                     onClick={() => openEdit(sched)}
                     aria-label={`Edit ${sched.name}`}
                     title="Edit"
+                    style={{ padding: '6px' }}
                   >
-                    <Edit2 size={16} />
+                    <Edit2 size={15} />
                   </button>
                   <button
                     className="btn btn-ghost btn-icon"

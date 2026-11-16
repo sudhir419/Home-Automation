@@ -5,11 +5,12 @@ import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Zap, Wifi, WifiOff, Calendar, Lightbulb, ArrowRight,
-  Bluetooth, Clock, AlertTriangle,
+  Bluetooth, Clock, AlertTriangle, Power, Sliders, Bell
 } from 'lucide-react';
 import { useAppStore } from '../store/appStore';
 import { useBluetooth } from '../services/bluetooth/useBluetooth';
 import DeviceCard from '../components/DeviceCard';
+import { showToast } from '../components/ToastContainer';
 import { format } from 'date-fns';
 
 export default function DashboardPage() {
@@ -17,6 +18,7 @@ export default function DashboardPage() {
   const schedules = useAppStore((s) => s.schedules);
   const preferences = useAppStore((s) => s.preferences);
   const bluetooth = useAppStore((s) => s.bluetooth);
+  const setDeviceState = useAppStore((s) => s.setDeviceState);
   const { scan, connect, disconnect } = useBluetooth();
 
   const now = new Date();
@@ -50,6 +52,12 @@ export default function DashboardPage() {
       const { deviceAddress: addr, deviceName: devName } = useAppStore.getState().bluetooth;
       if (addr && devName) connect(addr, devName);
     }, 1500);
+  }
+
+  function handleAllLights(state: 'on' | 'off') {
+    const lights = devices.filter((d) => d.category === 'lighting');
+    lights.forEach((l) => setDeviceState(l.id, state));
+    showToast(`Turned ${state.toUpperCase()} all ${lights.length} lights`, state === 'on' ? 'success' : 'info');
   }
 
   return (
@@ -178,6 +186,22 @@ export default function DashboardPage() {
       >
         <style>{`.quick-actions-scroll::-webkit-scrollbar{display:none}`}</style>
 
+        {/* Master Light Controls */}
+        <button
+          className="btn btn-secondary"
+          style={{ flexShrink: 0, borderRadius: 'var(--radius-full)', whiteSpace: 'nowrap', borderColor: '#10b981', color: '#10b981' }}
+          onClick={() => handleAllLights('on')}
+        >
+          <Power size={15} /> All Lights ON
+        </button>
+        <button
+          className="btn btn-secondary"
+          style={{ flexShrink: 0, borderRadius: 'var(--radius-full)', whiteSpace: 'nowrap' }}
+          onClick={() => handleAllLights('off')}
+        >
+          <Power size={15} /> All Lights OFF
+        </button>
+
         {!isConnected ? (
           <button
             className="btn btn-primary"
@@ -199,6 +223,24 @@ export default function DashboardPage() {
             Disconnect
           </button>
         )}
+
+        <Link
+          to="/smart-modes"
+          className="btn btn-secondary"
+          style={{ flexShrink: 0, borderRadius: 'var(--radius-full)', whiteSpace: 'nowrap' }}
+        >
+          <Sliders size={16} />
+          Smart Modes
+        </Link>
+
+        <Link
+          to="/notifications"
+          className="btn btn-secondary"
+          style={{ flexShrink: 0, borderRadius: 'var(--radius-full)', whiteSpace: 'nowrap' }}
+        >
+          <Bell size={16} />
+          Notifications
+        </Link>
 
         <Link
           to="/devices"

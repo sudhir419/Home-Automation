@@ -25,6 +25,8 @@ import SchedulesPage from './pages/SchedulesPage';
 import BluetoothPage from './pages/BluetoothPage';
 import ActivityPage from './pages/ActivityPage';
 import SettingsPage from './pages/SettingsPage';
+import SmartModesPage from './pages/SmartModesPage';
+import NotificationsPage from './pages/NotificationsPage';
 
 export default function App() {
   // Apply theme on mount
@@ -92,6 +94,8 @@ export default function App() {
             <Route path="/bluetooth" element={<BluetoothPage />} />
             <Route path="/activity" element={<ActivityPage />} />
             <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/smart-modes" element={<SmartModesPage />} />
+            <Route path="/notifications" element={<NotificationsPage />} />
           </Routes>
         </AppShell>
       )}
