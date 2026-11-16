@@ -247,6 +247,7 @@ html {
   font-size: 16px;
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
+  touch-action: pan-y;
 }
 
 body {
@@ -258,6 +259,7 @@ body {
   background-color: var(--color-bg);
   min-height: 100dvh;
   overflow-x: hidden;
+  touch-action: pan-y;
   transition: background-color var(--transition-slow), color var(--transition-slow);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -813,6 +815,27 @@ a:hover { color: var(--color-accent-hover); }
 
   .main-content.sidebar-collapsed {
     margin-left: 0;
+  }
+
+  /* Single-column vertical mobile dashboard layout */
+  .mobile-dashboard-stats {
+    grid-template-columns: 1fr !important;
+  }
+
+  .mobile-device-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .mobile-quick-actions {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    overflow-x: visible !important;
+    white-space: normal !important;
+  }
+
+  .mobile-quick-actions .btn {
+    width: 100% !important;
+    justify-content: center !important;
   }
 }
 
@@ -1623,6 +1646,10 @@ a:hover { color: var(--color-accent-hover); }
   padding: var(--space-8);
   gap: var(--space-5);
   backdrop-filter: blur(8px);
+}
+
+[data-theme="dark"] .intro-screen {
+  background: #000000;
 }
 
 .intro-badge {

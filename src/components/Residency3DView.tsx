@@ -73,13 +73,13 @@ export default function Residency3DView({ onBackToHome, onBackToIntro }: Props) 
     // --- 1. Three.js Scene Setup ---
     const scene = new THREE.Scene();
 
-    // --- 2. Camera Setup (Responsive) ---
+    // --- 2. Camera Setup (Responsive, Perfectly Framed for 9:16 Mobile Viewports) ---
     const isMobile = window.innerWidth < 768;
-    const camera = new THREE.PerspectiveCamera(isMobile ? 38 : 44, width / height, 0.1, 100);
-    camera.position.set(0, isMobile ? 2.0 : 1.4, isMobile ? 7.5 : 5.8);
-    camera.fov = isMobile ? 38 : 44;
+    const camera = new THREE.PerspectiveCamera(isMobile ? 36 : 42, width / height, 0.1, 100);
+    camera.position.set(0, isMobile ? 1.6 : 1.4, isMobile ? 8.2 : 5.8);
+    camera.fov = isMobile ? 36 : 42;
     camera.updateProjectionMatrix();
-    camera.lookAt(0, 0.1, 0);
+    camera.lookAt(0, isMobile ? 0.2 : 0.1, 0);
 
     // --- 3. WebGL Renderer with High-Def Antialiasing & Tone Mapping ---
     const renderer = new THREE.WebGLRenderer({
@@ -847,9 +847,9 @@ export default function Residency3DView({ onBackToHome, onBackToIntro }: Props) 
       height = container.clientHeight || window.innerHeight;
       const mobile = window.innerWidth < 768;
       camera.aspect = width / height;
-      camera.fov = mobile ? 38 : 44;
-      camera.position.set(0, mobile ? 2.0 : 1.4, mobile ? 7.5 : 5.8);
-      camera.lookAt(0, 0.1, 0);
+      camera.fov = mobile ? 36 : 42;
+      camera.position.set(0, mobile ? 1.6 : 1.4, mobile ? 8.2 : 5.8);
+      camera.lookAt(0, mobile ? 0.2 : 0.1, 0);
       camera.updateProjectionMatrix();
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, mobile ? 1.5 : 2.0));
       renderer.setSize(width, height);
@@ -1125,35 +1125,50 @@ export default function Residency3DView({ onBackToHome, onBackToIntro }: Props) 
         );
       })()}
 
-      {/* Floating Enter Dashboard Button — Positioned slightly down, directly above the 3D model */}
+      {/* Floating Enter Dashboard Button — Fixed at BOTTOM-CENTER of mobile viewport with safe-area support */}
       <div
         style={{
           position: 'absolute',
-          top: 86,
+          bottom: 'calc(24px + env(safe-area-inset-bottom, 0px))',
           left: '50%',
           transform: 'translateX(-50%)',
-          zIndex: 30,
+          zIndex: 40,
           pointerEvents: 'auto',
+          width: 'calc(100% - 48px)',
+          maxWidth: 360,
+          display: 'flex',
+          justifyContent: 'center',
+          animation: 'card-appear 0.4s ease both',
         }}
         onClick={(e) => e.stopPropagation()}
       >
         <button
           type="button"
-          className="residency-back-home-btn"
           onClick={onBackToHome}
           aria-label="Proceed to Home Dashboard"
           style={{
-            padding: '10px 24px',
-            fontSize: 'var(--text-sm)',
-            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.5), 0 0 20px rgba(16, 185, 129, 0.4)',
-            backdropFilter: 'blur(12px)',
-            background: 'rgba(0,0,0,0.5)',
-            borderRadius: 12,
-            border: '1px solid rgba(255,255,255,0.1)',
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 10,
+            padding: '14px 28px',
+            fontSize: 'var(--text-base)',
+            fontFamily: 'var(--font-heading)',
+            fontWeight: 700,
+            color: '#ffffff',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.6), 0 0 24px rgba(16, 185, 129, 0.4)',
+            backdropFilter: 'blur(20px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+            background: 'rgba(16, 185, 129, 0.92)',
+            borderRadius: 'var(--radius-full)',
+            border: '1px solid rgba(255, 255, 255, 0.25)',
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
           }}
         >
-          <ArrowLeft size={16} />
           <span>Enter Dashboard</span>
+          <Sparkles size={18} style={{ color: '#ffffff' }} />
         </button>
       </div>
     </div>

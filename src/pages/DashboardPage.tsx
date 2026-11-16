@@ -119,11 +119,12 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* ── Stats Grid 2×2 on mobile ── */}
+      {/* ── Stats Grid (Responsive 2×2 on Desktop, Clean Stacked on Mobile) ── */}
       <div
+        className="mobile-dashboard-stats"
         style={{
           display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
           gap: 'var(--space-3)',
           marginBottom: 'var(--space-5)',
         }}
@@ -169,11 +170,12 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* ── Quick Actions — Horizontal Scrollable Row ── */}
+      {/* ── Quick Actions ── */}
       <div className="section-header" style={{ marginBottom: 'var(--space-3)' }}>
         <h3>Quick Actions</h3>
       </div>
       <div
+        className="mobile-quick-actions"
         style={{
           display: 'flex',
           gap: 'var(--space-2)',
@@ -302,9 +304,10 @@ export default function DashboardPage() {
         </Link>
       </div>
       <div
+        className="mobile-device-grid"
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(2, 1fr)',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
           gap: 'var(--space-3)',
           marginBottom: 'var(--space-5)',
         }}

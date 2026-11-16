@@ -1,12 +1,11 @@
 // ============================================================
-// BLUETOOTH PAGE — Premium UI with Web BT support
+// BLUETOOTH PAGE — Professional Mobile BLE Screen & Accurate States
 // ============================================================
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Bluetooth, BluetoothOff, RefreshCw, Unlink,
-  AlertCircle, Info, Shield, Smartphone, CheckCircle,
-  Signal, WifiOff,
+  AlertCircle, Info, Shield, CheckCircle, WifiOff, Settings,
 } from 'lucide-react';
 import { useAppStore } from '../store/appStore';
 import { useBluetooth } from '../services/bluetooth/useBluetooth';
@@ -14,13 +13,11 @@ import { bluetoothAdapter, getBLEConfig } from '../services/bluetooth/bluetoothS
 
 type FoundDevice = { name: string; address: string };
 
-// ---- Browser capability checks (evaluated once at module load) ------------------
 const isWebBTSupported = 'bluetooth' in navigator;
 const isHTTPS =
   typeof location !== 'undefined' &&
   (location.protocol === 'https:' || location.hostname === 'localhost');
 
-// ---- Signal quality pill -------------------------------------------------------
 function SignalBars({ strength = 3 }: { strength?: number }) {
   const bars = [1, 2, 3, 4];
   return (
@@ -41,12 +38,12 @@ function SignalBars({ strength = 3 }: { strength?: number }) {
   );
 }
 
-// ============================================================
 export default function BluetoothPage() {
   const bluetooth = useAppStore((s) => s.bluetooth);
   const { connect, disconnect } = useBluetooth();
   const [foundDevices, setFoundDevices] = useState<FoundDevice[]>([]);
   const [scanning, setScanning] = useState(false);
+  const [infoNotice, setInfoNotice] = useState<string | null>(null);
   const addActivity = useAppStore((s) => s.addActivity);
   const setBluetooth = useAppStore((s) => s.setBluetooth);
   const bleConfig = getBLEConfig();
@@ -63,13 +60,14 @@ export default function BluetoothPage() {
     : scanning
     ? 'Scanning…'
     : isError
-    ? 'Error'
+    ? 'Connection Note'
     : 'Ready to Connect';
 
-  // ---- Scan handler -------------------------------------------------------------
+  // ---- Scan handler with gentle cancellation handling ---------------------------
   async function handleScan() {
     setFoundDevices([]);
     setScanning(true);
+    setInfoNotice(null);
     setBluetooth({ status: 'scanning', errorMessage: null });
     addActivity({
       category: 'bluetooth',
@@ -95,7 +93,18 @@ export default function BluetoothPage() {
       });
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      setBluetooth({ status: 'error', errorMessage: msg });
+      // Check if this was a normal user cancellation of the device chooser
+      const isCancellation =
+        msg.toLowerCase().includes('cancelled') ||
+        msg.toLowerCase().includes('canceled') ||
+        msg.toLowerCase().includes('user cancelled');
+
+      if (isCancellation) {
+        setBluetooth({ status: 'disconnected', errorMessage: null });
+        setInfoNotice('Device selection cancelled. Tap "Scan for Devices" to try again.');
+      } else {
+        setBluetooth({ status: 'error', errorMessage: msg });
+      }
     } finally {
       setScanning(false);
     }
@@ -104,53 +113,54 @@ export default function BluetoothPage() {
   async function handleDisconnect() {
     await disconnect();
     setFoundDevices([]);
+    setInfoNotice(null);
   }
 
-  // ---- Render -------------------------------------------------------------------
   return (
-    <div>
-      <div className="page-header">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <div className="page-header" style={{ marginBottom: 4 }}>
         <h2>Bluetooth</h2>
         <p>Manage BLE device connection and pairing</p>
       </div>
 
       {/* ── Browser support warnings ─────────────────────────── */}
       {!isWebBTSupported && (
-        <div className="alert warning" style={{ marginBottom: 'var(--space-4)' }}>
+        <div className="alert warning">
           <WifiOff size={16} aria-hidden="true" />
           <span>
             Web Bluetooth is not available in this browser.
-            Use <strong>Chrome on Android</strong> or <strong>Chrome on Desktop</strong>.
+            Use <strong>Chrome on Android</strong> or install the app as a PWA.
           </span>
         </div>
       )}
       {isWebBTSupported && !isHTTPS && (
-        <div className="alert warning" style={{ marginBottom: 'var(--space-4)' }}>
+        <div className="alert warning">
           <AlertCircle size={16} aria-hidden="true" />
           <span>
-            Web Bluetooth requires HTTPS. Please open the <strong>Vercel URL</strong> instead of an HTTP URL.
+            Web Bluetooth requires HTTPS. Please open the <strong>Vercel URL</strong>.
           </span>
         </div>
       )}
 
       {/* ── Status header card ───────────────────────────────── */}
       <div
-        className="glass-card mb-6"
+        className="glass-card"
         style={{
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           textAlign: 'center',
-          padding: 'var(--space-8) var(--space-6)',
-          gap: 'var(--space-4)',
+          padding: '24px 20px',
+          gap: 16,
           position: 'relative',
           overflow: 'hidden',
+          borderRadius: 20,
         }}
       >
         {/* Radar animation or static icon */}
         <div
           className="bt-radar"
-          style={{ position: 'relative', width: 80, height: 80, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          style={{ position: 'relative', width: 76, height: 76, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
         >
           {scanning && (
             <>
@@ -182,15 +192,17 @@ export default function BluetoothPage() {
               position: 'relative',
             }}
           >
-            {isError
-              ? <BluetoothOff size={32} aria-hidden="true" />
-              : <Bluetooth size={32} aria-hidden="true" />}
+            {isError ? (
+              <BluetoothOff size={30} aria-hidden="true" />
+            ) : (
+              <Bluetooth size={30} aria-hidden="true" />
+            )}
           </div>
         </div>
 
         {/* Status label */}
-        <div>
-          <h3 style={{ margin: 0, marginBottom: 'var(--space-1)' }}>{statusLabel}</h3>
+        <div style={{ width: '100%' }}>
+          <h3 style={{ margin: 0, marginBottom: 4, fontSize: 'var(--text-lg)' }}>{statusLabel}</h3>
           {isConnected && bluetooth.deviceAddress && (
             <div
               style={{
@@ -200,27 +212,55 @@ export default function BluetoothPage() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: 'var(--space-2)',
+                gap: 8,
               }}
             >
               {bluetooth.deviceAddress}
               <SignalBars strength={3} />
             </div>
           )}
+
+          {/* User cancellation notice (neutral, non-critical) */}
+          {infoNotice && (
+            <div
+              style={{
+                marginTop: 12,
+                padding: '10px 14px',
+                borderRadius: 12,
+                background: 'rgba(59, 130, 246, 0.1)',
+                border: '1px solid rgba(59, 130, 246, 0.25)',
+                color: 'var(--color-text-secondary)',
+                fontSize: 12,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                textAlign: 'left',
+              }}
+            >
+              <Info size={15} style={{ color: '#3b82f6', flexShrink: 0 }} />
+              <span>{infoNotice}</span>
+            </div>
+          )}
+
+          {/* Actual system error */}
           {isError && bluetooth.errorMessage && (
             <div
               className="alert error"
-              style={{ marginTop: 'var(--space-3)', textAlign: 'left' }}
+              style={{ marginTop: 12, textAlign: 'left', fontSize: 12 }}
             >
-              <AlertCircle size={14} aria-hidden="true" />
-              {bluetooth.errorMessage}
+              <AlertCircle size={15} aria-hidden="true" />
+              <span>{bluetooth.errorMessage}</span>
             </div>
           )}
         </div>
 
         {/* Action button */}
         {isConnected ? (
-          <button className="btn btn-secondary btn-lg" onClick={handleDisconnect}>
+          <button
+            className="btn btn-secondary btn-lg"
+            onClick={handleDisconnect}
+            style={{ width: '100%', maxWidth: 280, borderRadius: 'var(--radius-full)' }}
+          >
             <Unlink size={18} aria-hidden="true" /> Disconnect
           </button>
         ) : (
@@ -229,6 +269,13 @@ export default function BluetoothPage() {
             onClick={handleScan}
             disabled={scanning || isConnecting || !isWebBTSupported}
             aria-label={scanning ? 'Scanning for devices' : 'Scan for Bluetooth devices'}
+            style={{
+              width: '100%',
+              maxWidth: 280,
+              borderRadius: 'var(--radius-full)',
+              background: '#10b981',
+              borderColor: '#10b981',
+            }}
           >
             <RefreshCw
               size={18}
@@ -255,24 +302,22 @@ export default function BluetoothPage() {
       {/* ── Connected state card ─────────────────────────────── */}
       {isConnected && (
         <div
-          className="bt-connected-info glass-card mb-6"
+          className="bt-connected-info glass-card"
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: 'var(--space-3)',
-            padding: 'var(--space-4)',
+            gap: 12,
+            padding: '14px 16px',
+            borderRadius: 14,
           }}
         >
           <CheckCircle size={22} style={{ color: 'var(--color-accent)', flexShrink: 0 }} aria-hidden="true" />
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div className="font-semibold" style={{ fontWeight: 600 }}>
+            <div style={{ fontWeight: 600, fontSize: 'var(--text-sm)' }}>
               {bluetooth.deviceName}
             </div>
-            <div
-              className="text-xs text-tertiary"
-              style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-tertiary)' }}
-            >
-              BLE Connected · ESP32
+            <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-tertiary)' }}>
+              BLE Connected · ESP32 Hardware
             </div>
           </div>
           <button className="btn btn-secondary btn-sm" onClick={handleDisconnect}>
@@ -283,25 +328,27 @@ export default function BluetoothPage() {
 
       {/* ── Found devices list ───────────────────────────────── */}
       {foundDevices.length > 0 && !isConnected && (
-        <div className="card mb-6">
-          <h4 style={{ marginBottom: 'var(--space-4)' }}>Found Devices</h4>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+        <div className="card">
+          <h4 style={{ marginBottom: 12, fontSize: 'var(--text-base)' }}>Discovered Devices</h4>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {foundDevices.map((device) => (
-              <div key={device.address} className="found-device-card glass-card"
+              <div
+                key={device.address}
+                className="found-device-card glass-card"
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 'var(--space-3)',
-                  padding: 'var(--space-3) var(--space-4)',
+                  gap: 12,
+                  padding: '12px 14px',
+                  borderRadius: 14,
                 }}
               >
                 <div
-                  className="device-icon-pill"
                   style={{
-                    width: 40,
-                    height: 40,
+                    width: 38,
+                    height: 38,
                     borderRadius: '50%',
-                    background: 'var(--color-accent-light, rgba(16,185,129,0.12))',
+                    background: 'rgba(16,185,129,0.12)',
                     color: 'var(--color-accent)',
                     display: 'flex',
                     alignItems: 'center',
@@ -312,16 +359,12 @@ export default function BluetoothPage() {
                   <Bluetooth size={18} aria-hidden="true" />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div
-                    className="device-name"
-                    style={{ fontWeight: 600, fontSize: 'var(--text-sm)' }}
-                  >
+                  <div style={{ fontWeight: 600, fontSize: 'var(--text-sm)' }}>
                     {device.name}
                   </div>
                   <div
-                    className="device-id text-xs text-tertiary"
                     style={{
-                      fontSize: 'var(--text-xs)',
+                      fontSize: 11,
                       color: 'var(--color-text-tertiary)',
                       fontFamily: 'monospace',
                     }}
@@ -334,6 +377,7 @@ export default function BluetoothPage() {
                   onClick={() => connect(device.address, device.name)}
                   disabled={isConnecting}
                   aria-label={`Connect to ${device.name}`}
+                  style={{ fontSize: 12, padding: '6px 14px' }}
                 >
                   Connect
                 </button>
@@ -344,237 +388,104 @@ export default function BluetoothPage() {
       )}
 
       {/* ── BLE UUID configuration ───────────────────────────── */}
-      <div className="card mb-6">
-        <h4 style={{ marginBottom: 'var(--space-3)' }}>BLE Service Configuration</h4>
+      <div className="card">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <h4 style={{ margin: 0, fontSize: 'var(--text-base)' }}>ESP32 BLE Configuration</h4>
+          <Link
+            to="/settings"
+            style={{
+              fontSize: 12,
+              color: 'var(--color-accent)',
+              textDecoration: 'none',
+              fontWeight: 600,
+            }}
+          >
+            Edit in Settings →
+          </Link>
+        </div>
         <div
-          className="text-sm text-secondary"
           style={{
-            fontSize: 'var(--text-sm)',
+            fontSize: 'var(--text-xs)',
             color: 'var(--color-text-secondary)',
-            lineHeight: 2,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 6,
           }}
         >
           <div>
-            Service:{' '}
+            <span style={{ color: 'var(--color-text-tertiary)' }}>Service UUID: </span>
             <code
               style={{
                 fontFamily: 'monospace',
                 background: 'var(--color-bg-alt)',
-                padding: '1px 6px',
+                padding: '2px 6px',
                 borderRadius: 4,
-                fontSize: 'var(--text-xs)',
+                wordBreak: 'break-all',
               }}
             >
               {bleConfig.serviceUUID}
             </code>
           </div>
           <div>
-            TX Char:{' '}
+            <span style={{ color: 'var(--color-text-tertiary)' }}>TX Char UUID: </span>
             <code
               style={{
                 fontFamily: 'monospace',
                 background: 'var(--color-bg-alt)',
-                padding: '1px 6px',
+                padding: '2px 6px',
                 borderRadius: 4,
-                fontSize: 'var(--text-xs)',
+                wordBreak: 'break-all',
               }}
             >
               {bleConfig.txCharUUID}
             </code>
           </div>
         </div>
-        <Link
-          to="/settings"
-          style={{
-            display: 'inline-block',
-            marginTop: 'var(--space-2)',
-            fontSize: 'var(--text-sm)',
-            color: 'var(--color-accent)',
-            textDecoration: 'none',
-          }}
-        >
-          Configure in Settings →
-        </Link>
       </div>
 
       {/* ── Architecture info ────────────────────────────────── */}
-      <div className="card mb-6">
-        <h4 style={{ marginBottom: 'var(--space-4)' }}>Bluetooth Architecture</h4>
-        <div className="alert info" style={{ marginBottom: 'var(--space-4)' }}>
-          <Info size={16} aria-hidden="true" />
+      <div className="card">
+        <h4 style={{ marginBottom: 10, fontSize: 'var(--text-base)' }}>Bluetooth Architecture</h4>
+        <div className="alert info" style={{ marginBottom: 12, fontSize: 12 }}>
+          <Info size={15} aria-hidden="true" />
           <div>
             {isWebBTSupported ? (
               <>
-                <strong>Web Bluetooth Active</strong> — Using the browser's native BLE API
-                (Chrome/Chromium). Scan will open the browser device picker.
+                <strong>Web Bluetooth Active</strong> — Communicating directly with nearby ESP32
+                over standard GATT BLE services.
               </>
             ) : (
               <>
-                <strong>Demo Mode Active</strong> — The MockBluetoothAdapter simulates scanning
-                and connection. No real hardware is used in this browser mode.
+                <strong>Demo Mode Active</strong> — MockBluetoothAdapter active for non-BLE browsers.
               </>
             )}
           </div>
         </div>
         <div
           style={{
-            fontSize: 'var(--text-sm)',
+            fontSize: 12,
             color: 'var(--color-text-secondary)',
-            lineHeight: 2,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 4,
           }}
         >
+          <div><strong>Target hardware:</strong> ESP32-WROOM-32</div>
           <div>
-            <strong>Current adapter:</strong>{' '}
-            {isWebBTSupported ? 'WebBluetoothAdapter (real BLE)' : 'MockBluetoothAdapter (demo)'}
-          </div>
-          <div><strong>Target hardware:</strong> ESP32 development board (model TBC)</div>
-          <div><strong>Protocol:</strong> BLE GATT over {bleConfig.serviceUUID.slice(0, 8)}…</div>
-          <div>
-            <strong>Command format:</strong>{' '}
+            <strong>Command syntax:</strong>{' '}
             <code
               style={{
                 fontFamily: 'monospace',
                 background: 'var(--color-bg-alt)',
-                padding: '1px 6px',
+                padding: '1px 5px',
                 borderRadius: 4,
               }}
             >
               L1_ON\n
-            </code>{' '}
-            (newline-terminated ASCII)
-          </div>
-          <div>
-            <strong>APK plugin:</strong> Replace adapter in{' '}
-            <code
-              style={{
-                fontFamily: 'monospace',
-                background: 'var(--color-bg-alt)',
-                padding: '1px 6px',
-                borderRadius: 4,
-              }}
-            >
-              bluetoothService.ts
-            </code>{' '}
-            with the real Capacitor plugin when building the APK
+            </code>
           </div>
         </div>
       </div>
-
-      {/* ── Permissions ──────────────────────────────────────── */}
-      <div className="card mb-6">
-        <h4
-          style={{
-            marginBottom: 'var(--space-4)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 'var(--space-2)',
-          }}
-        >
-          <Shield size={18} aria-hidden="true" /> Android Permissions Required
-        </h4>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-          {[
-            { name: 'BLUETOOTH_SCAN', desc: 'Scan for nearby BT devices (Android 12+)' },
-            { name: 'BLUETOOTH_CONNECT', desc: 'Connect to paired devices (Android 12+)' },
-            { name: 'BLUETOOTH / BLUETOOTH_ADMIN', desc: 'Legacy Bluetooth (Android ≤ 11)' },
-            { name: 'ACCESS_FINE_LOCATION', desc: 'Required for BLE scanning (Android < 12)' },
-          ].map((p) => (
-            <div key={p.name} style={{ display: 'flex', gap: 'var(--space-3)', alignItems: 'flex-start' }}>
-              <CheckCircle
-                size={16}
-                style={{ color: 'var(--color-on-success)', flexShrink: 0, marginTop: 2 }}
-                aria-hidden="true"
-              />
-              <div>
-                <code
-                  style={{
-                    fontFamily: 'monospace',
-                    fontSize: 'var(--text-xs)',
-                    background: 'var(--color-bg-alt)',
-                    padding: '2px 6px',
-                    borderRadius: 4,
-                  }}
-                >
-                  {p.name}
-                </code>
-                <span
-                  style={{
-                    fontSize: 'var(--text-xs)',
-                    color: 'var(--color-text-tertiary)',
-                    marginLeft: 8,
-                  }}
-                >
-                  {p.desc}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* ── Troubleshooting ──────────────────────────────────── */}
-      <div className="card">
-        <h4
-          style={{
-            marginBottom: 'var(--space-4)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 'var(--space-2)',
-          }}
-        >
-          <Smartphone size={18} aria-hidden="true" /> Connection Troubleshooting
-        </h4>
-        <ol
-          style={{
-            paddingLeft: 'var(--space-5)',
-            color: 'var(--color-text-secondary)',
-            fontSize: 'var(--text-sm)',
-            lineHeight: 2,
-          }}
-        >
-          <li>Ensure Bluetooth is enabled on your Android phone.</li>
-          <li>Grant all Bluetooth permissions when prompted.</li>
-          <li>Make sure the ESP32 is powered on and running the firmware.</li>
-          <li>For Web Bluetooth: open the app on Chrome over HTTPS or localhost.</li>
-          <li>For BT Classic SPP: pair the ESP32 in Android Settings first.</li>
-          <li>For BLE: no pre-pairing needed — Scan, then Connect.</li>
-          <li>Stay within 5–10 m of the ESP32 for a stable connection.</li>
-          <li>On failure: Disconnect → wait 2 s → Scan again.</li>
-        </ol>
-      </div>
-
-      {/* ── Inline styles ────────────────────────────────────── */}
-      <style>{`
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to   { transform: rotate(360deg); }
-        }
-
-        @keyframes radar-pulse {
-          0%   { transform: scale(1);   opacity: 0.6; }
-          100% { transform: scale(2.8); opacity: 0; }
-        }
-
-        .bt-radar {
-          position: relative;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        .bt-radar-ring {
-          position: absolute;
-          border-radius: 50%;
-          border: 2px solid var(--color-accent);
-          width: 80px;
-          height: 80px;
-          animation: radar-pulse 2s ease-out infinite;
-          pointer-events: none;
-        }
-        .ring-1 { animation-delay: 0s; }
-        .ring-2 { animation-delay: 0.6s; }
-        .ring-3 { animation-delay: 1.2s; }
-      `}</style>
     </div>
   );
 }

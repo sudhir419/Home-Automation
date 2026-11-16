@@ -419,15 +419,17 @@ export default function AppShell({ children, onOpen3D }: ShellProps) {
         {children}
       </main>
 
-      {/* === Bottom Nav (mobile) — Floating Pill === */}
+      {/* === Bottom Nav (mobile) — Floating Pill with 9:16 Centering & Safe-Area === */}
       <nav
         className="bottom-nav"
         aria-label="Bottom navigation"
         style={{
           position: 'fixed',
-          bottom: 16,
-          left: 12,
-          right: 12,
+          bottom: 'calc(14px + env(safe-area-inset-bottom, 0px))',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: 'calc(100% - 24px)',
+          maxWidth: 420,
           zIndex: 200,
           borderRadius: 28,
           backdropFilter: 'blur(24px) saturate(180%)',
@@ -461,7 +463,6 @@ export default function AppShell({ children, onOpen3D }: ShellProps) {
             justifyContent: 'space-evenly',
             alignItems: 'stretch',
             padding: '8px 4px',
-            paddingBottom: 'calc(8px + env(safe-area-inset-bottom, 0px))',
             position: 'relative',
           }}
         >
