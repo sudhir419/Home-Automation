@@ -5,6 +5,7 @@ import { useState, useMemo } from 'react';
 import { Search, Plus, Filter } from 'lucide-react';
 import { useAppStore } from '../store/appStore';
 import DeviceCard from '../components/DeviceCard';
+import DeviceModal from '../components/DeviceModal';
 import type { DeviceCategory } from '../models/types';
 
 const CATEGORIES: { value: DeviceCategory | 'all'; label: string }[] = [
@@ -30,6 +31,7 @@ export default function DevicesPage() {
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState<DeviceCategory | 'all'>('all');
   const [support, setSupport] = useState('all');
+  const [addModalOpen, setAddModalOpen] = useState(false);
 
   const filtered = useMemo(() => {
     return devices.filter((d) => {
@@ -43,12 +45,28 @@ export default function DevicesPage() {
 
   return (
     <div>
-      <div className="page-header">
-        <div className="flex items-center justify-between gap-4">
+      <div className="page-header" style={{ marginBottom: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
           <div>
             <h2>All Devices</h2>
-            <p>{devices.length} devices configured</p>
+            <p style={{ margin: 0, fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)' }}>
+              {devices.length} devices configured
+            </p>
           </div>
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={() => setAddModalOpen(true)}
+            style={{
+              padding: '8px 16px',
+              fontSize: '13px',
+              borderRadius: 'var(--radius-full)',
+              gap: 6,
+              flexShrink: 0,
+            }}
+          >
+            <Plus size={16} /> Add a Device
+          </button>
         </div>
       </div>
 
@@ -110,6 +128,13 @@ export default function DevicesPage() {
           </button>
         </div>
       )}
+
+      {/* Add a Device Modal */}
+      <DeviceModal
+        isOpen={addModalOpen}
+        onClose={() => setAddModalOpen(false)}
+        mode="add"
+      />
     </div>
   );
 }

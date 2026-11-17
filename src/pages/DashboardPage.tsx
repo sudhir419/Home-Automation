@@ -1,15 +1,16 @@
 // ============================================================
 // DASHBOARD PAGE — Premium Mobile-First Redesign
 // ============================================================
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Zap, Wifi, WifiOff, Calendar, Lightbulb, ArrowRight,
-  Bluetooth, Clock, AlertTriangle, Power, Sliders, Bell
+  Bluetooth, Clock, AlertTriangle, Power, Sliders, Bell, Plus,
 } from 'lucide-react';
 import { useAppStore } from '../store/appStore';
 import { useBluetooth } from '../services/bluetooth/useBluetooth';
 import DeviceCard from '../components/DeviceCard';
+import DeviceModal from '../components/DeviceModal';
 import { showToast } from '../components/ToastContainer';
 import { format } from 'date-fns';
 
@@ -21,6 +22,7 @@ export default function DashboardPage() {
   const setDeviceState = useAppStore((s) => s.setDeviceState);
   const { scan, connect, disconnect } = useBluetooth();
 
+  const [addModalOpen, setAddModalOpen] = useState(false);
   const now = new Date();
   const greeting = getGreeting(now);
 
@@ -136,6 +138,15 @@ export default function DashboardPage() {
         }}
       >
         <style>{`.quick-actions-scroll::-webkit-scrollbar{display:none}`}</style>
+
+        <button
+          type="button"
+          className="btn btn-secondary"
+          style={{ flexShrink: 0, borderRadius: 'var(--radius-full)', whiteSpace: 'nowrap', borderColor: '#10b981', color: '#10b981' }}
+          onClick={() => setAddModalOpen(true)}
+        >
+          <Plus size={15} /> Add a Device
+        </button>
 
         {/* Master Light Controls */}
         <button
@@ -376,6 +387,12 @@ export default function DashboardPage() {
           </div>
         </>
       )}
+      {/* Add a Device Modal */}
+      <DeviceModal
+        isOpen={addModalOpen}
+        onClose={() => setAddModalOpen(false)}
+        mode="add"
+      />
     </div>
   );
 }

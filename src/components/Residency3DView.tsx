@@ -75,11 +75,11 @@ export default function Residency3DView({ onBackToHome, onBackToIntro }: Props) 
 
     // --- 2. Camera Setup (Responsive, Perfectly Framed for 9:16 Mobile Viewports) ---
     const isMobile = window.innerWidth < 768;
-    const camera = new THREE.PerspectiveCamera(isMobile ? 40 : 42, width / height, 0.1, 100);
-    camera.position.set(0, isMobile ? 1.7 : 1.4, isMobile ? 9.2 : 5.8);
-    camera.fov = isMobile ? 40 : 42;
+    const camera = new THREE.PerspectiveCamera(isMobile ? 38 : 42, width / height, 0.1, 100);
+    camera.position.set(0, isMobile ? 1.4 : 1.4, isMobile ? 9.8 : 5.8);
+    camera.fov = isMobile ? 38 : 42;
     camera.updateProjectionMatrix();
-    camera.lookAt(0, isMobile ? 0.15 : 0.1, 0);
+    camera.lookAt(0, isMobile ? 0.05 : 0.1, 0);
 
     // --- 3. WebGL Renderer with High-Def Antialiasing & Tone Mapping ---
     const renderer = new THREE.WebGLRenderer({
@@ -178,6 +178,9 @@ export default function Residency3DView({ onBackToHome, onBackToIntro }: Props) 
     const groundRing2 = new THREE.Mesh(ringGeo2, ringMat2);
     groundRing2.rotation.x = Math.PI / 2;
     groundGroup.add(groundRing2);
+
+    // Scale ground foundation on mobile to ensure full viewport framing
+    groundGroup.scale.setScalar(isMobile ? 0.58 : 1.0);
 
     scene.add(groundGroup);
 
@@ -769,10 +772,10 @@ export default function Residency3DView({ onBackToHome, onBackToIntro }: Props) 
       houseGroup.rotation.x = stateRef.current.userRotationX;
       houseGroup.position.y = Math.sin(t * 1.5) * 0.04;
 
-      // In normal mode on mobile, scale house gracefully (0.82) to fit viewport;
+      // In normal mode on mobile, scale house compactly (0.58) to ensure complete architectural framing;
       // in orbital mode, house shrinks to become the central glowing hub
-      const baseHouseScale = isMobile ? 0.82 : 1.0;
-      const houseScale = THREE.MathUtils.lerp(baseHouseScale, baseHouseScale * 0.52, ease);
+      const baseHouseScale = isMobile ? 0.58 : 1.0;
+      const houseScale = THREE.MathUtils.lerp(baseHouseScale, baseHouseScale * 0.48, ease);
       houseGroup.scale.setScalar(houseScale);
 
       // --- Solar System Orbital Revolution ---
@@ -782,7 +785,7 @@ export default function Residency3DView({ onBackToHome, onBackToIntro }: Props) 
         // Slow, elegant, fluid planetary revolution speed (approx 28 seconds per full orbit)
         const orbitSpeed = 0.22;
         const currentRevolutionAngle = t * orbitSpeed + stateRef.current.userRotationY * 0.4;
-        const targetRadius = (isMobile ? 1.55 : 2.45) * ease;
+        const targetRadius = (isMobile ? 1.25 : 2.45) * ease;
 
         // Spin ceiling fan blades smoothly
         fanBladesRotor.rotation.y += 0.09;
@@ -803,7 +806,7 @@ export default function Residency3DView({ onBackToHome, onBackToIntro }: Props) 
           const yBob = Math.sin(t * 2.0 + i * 1.05) * 0.04;
 
           holder.position.set(x, yBob, z);
-          holder.scale.setScalar((isMobile ? 0.78 : 1.0) * ease);
+          holder.scale.setScalar((isMobile ? 0.62 : 1.0) * ease);
 
           // Rotate each appliance to face slightly tangent or outward for optimal visibility
           holder.rotation.y = -theta + Math.PI / 2 + Math.sin(t * 1.2 + i) * 0.1;
@@ -849,10 +852,11 @@ export default function Residency3DView({ onBackToHome, onBackToIntro }: Props) 
       height = container.clientHeight || window.innerHeight;
       const mobile = window.innerWidth < 768;
       camera.aspect = width / height;
-      camera.fov = mobile ? 40 : 42;
-      camera.position.set(0, mobile ? 1.7 : 1.4, mobile ? 9.2 : 5.8);
-      camera.lookAt(0, mobile ? 0.15 : 0.1, 0);
+      camera.fov = mobile ? 38 : 42;
+      camera.position.set(0, mobile ? 1.4 : 1.4, mobile ? 9.8 : 5.8);
+      camera.lookAt(0, mobile ? 0.05 : 0.1, 0);
       camera.updateProjectionMatrix();
+      groundGroup.scale.setScalar(mobile ? 0.58 : 1.0);
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, mobile ? 1.5 : 2.0));
       renderer.setSize(width, height);
     };
