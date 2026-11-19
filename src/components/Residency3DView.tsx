@@ -980,7 +980,7 @@ export default function Residency3DView({ onBackToHome, onBackToIntro }: Props) 
         ) : (
           <div
             style={{
-              padding: '8px 16px',
+              padding: '6px 12px',
               borderRadius: 'var(--radius-full)',
               background: 'rgba(6, 30, 20, 0.75)',
               border: '1px solid rgba(52, 211, 153, 0.35)',
@@ -992,14 +992,14 @@ export default function Residency3DView({ onBackToHome, onBackToIntro }: Props) 
               WebkitBackdropFilter: 'blur(12px)',
               display: 'flex',
               alignItems: 'center',
-              gap: 6,
+              gap: 5,
               whiteSpace: 'nowrap',
               flexShrink: 0,
               boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
             }}
           >
-            <Sparkles size={13} style={{ color: '#34d399', flexShrink: 0 }} />
-            <span>Double-Click or Double-Tap House to Orbit</span>
+            <Sparkles size={12} style={{ color: '#34d399', flexShrink: 0 }} />
+            <span>Double-Tap to Orbit</span>
           </div>
         )}
       </div>

@@ -141,14 +141,14 @@ export default function SchedulesPage() {
   return (
     <div style={{ maxWidth: '100%', overflowX: 'hidden' }}>
       <div className="page-header" style={{ marginBottom: 14 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
-          <div style={{ minWidth: 0 }}>
-            <h2>Schedules</h2>
-            <p style={{ margin: 0, fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'nowrap', gap: 8, width: '100%' }}>
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <h2 style={{ margin: 0, fontSize: 'var(--text-xl)' }}>Schedules</h2>
+            <p style={{ margin: 0, fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)', whiteSpace: 'nowrap' }}>
               {schedules.length} schedule{schedules.length !== 1 ? 's' : ''} defined
             </p>
           </div>
-          <button className="btn btn-primary" onClick={openNew} style={{ flexShrink: 0, padding: '7px 14px', fontSize: 13, borderRadius: 'var(--radius-full)' }}>
+          <button className="btn btn-primary" onClick={openNew} style={{ flexShrink: 0, padding: '7px 14px', fontSize: 13, borderRadius: 'var(--radius-full)', whiteSpace: 'nowrap' }}>
             <Plus size={15} /> New Schedule
           </button>
         </div>
@@ -206,8 +206,8 @@ export default function SchedulesPage() {
 
                 {/* Info */}
                 <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'nowrap', marginBottom: 2 }}>
-                    <span style={{ fontWeight: 600, fontSize: 13, color: 'var(--color-text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 140 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: 2 }}>
+                    <span style={{ fontWeight: 600, fontSize: 13, color: 'var(--color-text-primary)' }}>
                       {sched.name}
                     </span>
                     {!sched.enabled && (
@@ -220,7 +220,7 @@ export default function SchedulesPage() {
                       {sched.action.toUpperCase()}
                     </span>
                   </div>
-                  <div style={{ fontSize: 11, color: 'var(--color-text-tertiary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <div style={{ fontSize: 11, color: 'var(--color-text-tertiary)', wordBreak: 'break-word' }}>
                     {devNames || 'No devices'} · {repeatLabel}
                   </div>
                 </div>

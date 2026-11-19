@@ -189,10 +189,12 @@ export default function SmartModesPage() {
               key={mode.id}
               className="card"
               style={{
-                padding: '14px 16px',
+                padding: '12px 14px',
                 border: isActive ? `1.5px solid ${mode.color}40` : undefined,
                 background: isActive ? `${mode.color}08` : undefined,
                 transition: 'all 200ms ease',
+                overflow: 'hidden',
+                boxSizing: 'border-box',
               }}
             >
               {/* Header row */}
@@ -200,7 +202,7 @@ export default function SmartModesPage() {
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 10,
+                  gap: 8,
                   cursor: 'pointer',
                   width: '100%',
                   minWidth: 0,
@@ -211,9 +213,9 @@ export default function SmartModesPage() {
                 {/* Icon */}
                 <div
                   style={{
-                    width: 38,
-                    height: 38,
-                    borderRadius: 12,
+                    width: 36,
+                    height: 36,
+                    borderRadius: 10,
                     background: `${mode.color}18`,
                     display: 'flex',
                     alignItems: 'center',
@@ -221,7 +223,7 @@ export default function SmartModesPage() {
                     flexShrink: 0,
                   }}
                 >
-                  <Icon size={18} style={{ color: mode.color }} />
+                  <Icon size={17} style={{ color: mode.color }} />
                 </div>
 
                 {/* Text */}
@@ -266,18 +268,18 @@ export default function SmartModesPage() {
                 </div>
 
                 {/* Actions */}
-                <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexShrink: 0 }}>
+                <div style={{ display: 'flex', gap: 4, alignItems: 'center', flexShrink: 0 }}>
                   <button
                     className={`btn btn-sm ${isActive ? 'btn-secondary' : 'btn-primary'}`}
                     onClick={(e) => { e.stopPropagation(); activateMode(mode.id); }}
                     disabled={isActivating || isActive}
                     style={{
-                      padding: '6px 12px',
+                      padding: '5px 10px',
                       borderRadius: 'var(--radius-full)',
                       background: isActive ? undefined : mode.color,
                       borderColor: isActive ? undefined : mode.color,
                       color: '#FFFFFF',
-                      fontSize: 12,
+                      fontSize: 11,
                       fontWeight: 600,
                       flexShrink: 0,
                     }}

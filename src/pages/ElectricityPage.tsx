@@ -239,7 +239,15 @@ export default function ElectricityPage() {
       </div>
 
       {/* --- Stat Cards (2×2 Grid on Mobile, 4 Columns on Desktop) --- */}
-      <div className="electricity-stats-grid" style={{ marginBottom: 'var(--space-6)' }}>
+      <div
+        className="electricity-stats-grid"
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+          gap: '10px',
+          marginBottom: 'var(--space-6)',
+        }}
+      >
         {/* Total Energy Consumed */}
         <div className="stat-card">
           <div className="stat-card-icon" style={{ background: 'var(--color-accent-light)', color: 'var(--color-accent)' }}>
