@@ -105,4 +105,5 @@ export interface UserPreferences {
   tempUnit: 'C' | 'F';
   showIntro: boolean;
   reducedMotion: boolean;
+  activeMode?: string;
 }
