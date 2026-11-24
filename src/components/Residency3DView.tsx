@@ -116,7 +116,7 @@ export default function Residency3DView({ onBackToHome, onBackToIntro }: Props) 
     scene.add(dirLight);
 
     // Accent Rim Light (Sage Mint)
-    const rimLight = new THREE.DirectionalLight(0x34d399, 1.8);
+    const rimLight = new THREE.DirectionalLight(0x93c5fd, 1.8);
     rimLight.position.set(-8, 6, -6);
     scene.add(rimLight);
 
@@ -146,7 +146,7 @@ export default function Residency3DView({ onBackToHome, onBackToIntro }: Props) 
     // Outer Concentric Glowing Ring (Emerald)
     const ringGeo1 = new THREE.RingGeometry(2.48, 2.505, 128);
     const ringMat1 = new THREE.MeshBasicMaterial({
-      color: 0x10b981,
+      color: 0x3b82f6,
       side: THREE.DoubleSide,
       transparent: true,
       opacity: 0.5,
@@ -170,7 +170,7 @@ export default function Residency3DView({ onBackToHome, onBackToIntro }: Props) 
     // Inner Concentric Glowing Ring
     const ringGeo2 = new THREE.RingGeometry(1.5, 1.516, 96);
     const ringMat2 = new THREE.MeshBasicMaterial({
-      color: 0x34d399,
+      color: 0x93c5fd,
       side: THREE.DoubleSide,
       transparent: true,
       opacity: 0.4,
@@ -260,8 +260,8 @@ export default function Residency3DView({ onBackToHome, onBackToIntro }: Props) 
 
     const doorHandleGeo = new THREE.CylinderGeometry(0.012, 0.012, 0.24, 16);
     const doorHandleMat = new THREE.MeshStandardMaterial({
-      color: 0x10b981,
-      emissive: 0x34d399,
+      color: 0x3b82f6,
+      emissive: 0x93c5fd,
       emissiveIntensity: 1.2,
     });
     const doorHandle = new THREE.Mesh(doorHandleGeo, doorHandleMat);
@@ -332,7 +332,7 @@ export default function Residency3DView({ onBackToHome, onBackToIntro }: Props) 
     houseGroup.add(roof);
 
     const ledStripGeo = new THREE.BoxGeometry(1.98, 0.015, 1.68);
-    const ledStripMat = new THREE.MeshBasicMaterial({ color: 0x34d399 });
+    const ledStripMat = new THREE.MeshBasicMaterial({ color: 0x93c5fd });
     const ledStrip = new THREE.Mesh(ledStripGeo, ledStripMat);
     ledStrip.position.set(-0.08, 0.77, 0.1);
     houseGroup.add(ledStrip);
@@ -533,7 +533,7 @@ export default function Residency3DView({ onBackToHome, onBackToIntro }: Props) 
     const fanLightGeo = new THREE.CylinderGeometry(0.12, 0.12, 0.03, 32);
     const fanLightMat = new THREE.MeshStandardMaterial({
       color: 0xffffff,
-      emissive: 0x34d399,
+      emissive: 0x93c5fd,
       emissiveIntensity: 0.9,
     });
     const fanLight = new THREE.Mesh(fanLightGeo, fanLightMat);
@@ -585,7 +585,7 @@ export default function Residency3DView({ onBackToHome, onBackToIntro }: Props) 
 
     // Glowing LED 22°C Temperature Display
     const acLedGeo = new THREE.PlaneGeometry(0.12, 0.05);
-    const acLedMat = new THREE.MeshBasicMaterial({ color: 0x10b981 });
+    const acLedMat = new THREE.MeshBasicMaterial({ color: 0x3b82f6 });
     const acLed = new THREE.Mesh(acLedGeo, acLedMat);
     acLed.position.set(0.34, 0.04, 0.145);
     acSub.add(acLed);
@@ -663,9 +663,12 @@ export default function Residency3DView({ onBackToHome, onBackToIntro }: Props) 
       return intersects.length > 0;
     };
 
-    // Desktop Double Click
+    // Desktop Double Click — toggle house ↔ appliances
     const handleDesktopDblClick = (e: MouseEvent) => {
-      if (stateRef.current.mode === 'house') {
+      if (stateRef.current.mode === 'appliances') {
+        // Already in appliances mode — return to house
+        handleReturnTo3DHome();
+      } else {
         const hit = checkHouseIntersection(e.clientX, e.clientY);
         if (hit) {
           stateRef.current.mode = 'appliances';
@@ -675,7 +678,7 @@ export default function Residency3DView({ onBackToHome, onBackToIntro }: Props) 
       }
     };
 
-    // Mobile Double Tap
+    // Mobile Double Tap — toggle house ↔ appliances
     const handleTouchEnd = (e: TouchEvent) => {
       if (e.changedTouches.length === 0) return;
       const touch = e.changedTouches[0];
@@ -685,7 +688,10 @@ export default function Residency3DView({ onBackToHome, onBackToIntro }: Props) 
 
       // Double-tap detected (within 350ms)
       if (timeDiff > 40 && timeDiff < 350) {
-        if (stateRef.current.mode === 'house') {
+        if (stateRef.current.mode === 'appliances') {
+          // Already in appliances mode — return to house
+          handleReturnTo3DHome();
+        } else {
           const hit = checkHouseIntersection(touch.clientX, touch.clientY);
           if (hit) {
             stateRef.current.mode = 'appliances';
@@ -931,7 +937,7 @@ export default function Residency3DView({ onBackToHome, onBackToIntro }: Props) 
               borderRadius: 'var(--radius-full)',
               background: 'rgba(0,0,0,0.5)',
               border: '1px solid rgba(255,255,255,0.1)',
-              color: '#a7f3d0',
+              color: '#BFDBFE',
               fontSize: 'var(--text-xs)',
               fontWeight: 600,
               cursor: 'pointer',
@@ -943,7 +949,7 @@ export default function Residency3DView({ onBackToHome, onBackToIntro }: Props) 
             }}
             title="Go back to Home Page"
           >
-            <ArrowLeft size={15} style={{ color: '#34d399' }} />
+            <ArrowLeft size={15} style={{ color: '#93C5FD' }} />
             <span>Back to Home</span>
           </button>
         </div>
@@ -961,7 +967,7 @@ export default function Residency3DView({ onBackToHome, onBackToIntro }: Props) 
               borderRadius: 'var(--radius-full)',
               background: 'rgba(6, 30, 20, 0.85)',
               border: '1px solid rgba(52, 211, 153, 0.45)',
-              color: '#a7f3d0',
+              color: '#BFDBFE',
               fontSize: '11px',
               fontWeight: 600,
               cursor: 'pointer',
@@ -974,7 +980,7 @@ export default function Residency3DView({ onBackToHome, onBackToIntro }: Props) 
             }}
             title="Return to 3D Home view"
           >
-            <Sparkles size={14} style={{ color: '#34d399' }} />
+            <Sparkles size={14} style={{ color: '#93C5FD' }} />
             <span>Return to 3D Home</span>
           </button>
         ) : (
@@ -984,7 +990,7 @@ export default function Residency3DView({ onBackToHome, onBackToIntro }: Props) 
               borderRadius: 'var(--radius-full)',
               background: 'rgba(6, 30, 20, 0.75)',
               border: '1px solid rgba(52, 211, 153, 0.35)',
-              color: '#a7f3d0',
+              color: '#BFDBFE',
               fontSize: '11px',
               fontWeight: 600,
               letterSpacing: '0.02em',
@@ -998,7 +1004,7 @@ export default function Residency3DView({ onBackToHome, onBackToIntro }: Props) 
               boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
             }}
           >
-            <Sparkles size={12} style={{ color: '#34d399', flexShrink: 0 }} />
+            <Sparkles size={12} style={{ color: '#93C5FD', flexShrink: 0 }} />
             <span>Double-Tap to Orbit</span>
           </div>
         )}
@@ -1020,9 +1026,9 @@ export default function Residency3DView({ onBackToHome, onBackToIntro }: Props) 
                   transform: 'translate(-50%, -100%)',
                   padding: '4px 14px',
                   borderRadius: 'var(--radius-full)',
-                  background: isActive ? 'rgba(16, 185, 129, 0.95)' : 'rgba(5, 24, 16, 0.82)',
+                  background: isActive ? 'rgba(59, 130, 246, 0.95)' : 'rgba(2, 8, 30, 0.82)',
                   border: '1px solid rgba(52, 211, 153, 0.45)',
-                  color: isActive ? '#FFFFFF' : '#a7f3d0',
+                  color: isActive ? '#FFFFFF' : '#BFDBFE',
                   fontSize: '12px',
                   fontWeight: 700,
                   fontFamily: 'var(--font-heading)',
@@ -1085,7 +1091,7 @@ export default function Residency3DView({ onBackToHome, onBackToIntro }: Props) 
           >
             {/* Close button */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-              <span style={{ color: '#a7f3d0', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+              <span style={{ color: '#BFDBFE', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
                 {appliance.category}
               </span>
               <button
@@ -1107,7 +1113,7 @@ export default function Residency3DView({ onBackToHome, onBackToIntro }: Props) 
               </button>
             </div>
             <div style={{ color: '#ffffff', fontSize: 20, fontWeight: 700, marginBottom: 4 }}>{appliance.name}</div>
-            <div style={{ color: '#555', fontSize: 13, marginBottom: 16 }}>Power rating: <span style={{ color: '#a7f3d0' }}>{appliance.powerRating}</span></div>
+            <div style={{ color: '#555', fontSize: 13, marginBottom: 16 }}>Power rating: <span style={{ color: '#BFDBFE' }}>{appliance.powerRating}</span></div>
             <Link
               to="/devices"
               style={{
@@ -1116,16 +1122,16 @@ export default function Residency3DView({ onBackToHome, onBackToIntro }: Props) 
                 gap: 6,
                 padding: '9px 18px',
                 borderRadius: 'var(--radius-full)',
-                background: 'rgba(16, 185, 129, 0.15)',
-                border: '1px solid rgba(16, 185, 129, 0.4)',
-                color: '#34d399',
+                background: 'rgba(59, 130, 246, 0.15)',
+                border: '1px solid rgba(59, 130, 246, 0.4)',
+                color: '#93C5FD',
                 fontSize: 13,
                 fontWeight: 600,
                 textDecoration: 'none',
               }}
             >
               <ExternalLink size={14} />
-              Open Dashboard
+              Open in Dashboard →
             </Link>
           </div>
         );
@@ -1162,10 +1168,10 @@ export default function Residency3DView({ onBackToHome, onBackToIntro }: Props) 
             fontFamily: 'var(--font-heading)',
             fontWeight: 700,
             color: '#ffffff',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.6), 0 0 24px rgba(16, 185, 129, 0.4)',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.6), 0 0 24px rgba(59, 130, 246, 0.4)',
             backdropFilter: 'blur(20px) saturate(180%)',
             WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-            background: 'rgba(16, 185, 129, 0.92)',
+            background: 'rgba(59, 130, 246, 0.92)',
             borderRadius: 'var(--radius-full)',
             border: '1px solid rgba(255, 255, 255, 0.25)',
             cursor: 'pointer',

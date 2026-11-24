@@ -184,11 +184,11 @@ export default function DashboardPage() {
                 gap: 6,
                 padding: '6px 14px',
                 borderRadius: '9999px',
-                background: isConnected ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255, 255, 255, 0.05)',
+                background: isConnected ? 'rgba(59, 130, 246, 0.15)' : 'rgba(255, 255, 255, 0.05)',
                 color: isConnected ? '#10B981' : 'rgba(255, 255, 255, 0.45)',
                 fontSize: '12px',
                 fontWeight: 600,
-                border: isConnected ? '1px solid rgba(16, 185, 129, 0.35)' : '1px solid rgba(255, 255, 255, 0.08)',
+                border: isConnected ? '1px solid rgba(59, 130, 246, 0.35)' : '1px solid rgba(255, 255, 255, 0.08)',
                 whiteSpace: 'nowrap',
               }}
             >
@@ -321,7 +321,7 @@ export default function DashboardPage() {
           <button
             type="button"
             className="btn btn-secondary"
-            style={{ flexShrink: 0, borderRadius: 'var(--radius-full)', whiteSpace: 'nowrap', borderColor: '#10b981', color: '#10b981' }}
+            style={{ flexShrink: 0, borderRadius: 'var(--radius-full)', whiteSpace: 'nowrap', borderColor: '#3B82F6', color: '#3B82F6' }}
             onClick={() => setAddModalOpen(true)}
           >
             <Plus size={15} /> Add a Device
@@ -330,7 +330,7 @@ export default function DashboardPage() {
           {/* Master Light Controls */}
           <button
             className="btn btn-secondary"
-            style={{ flexShrink: 0, borderRadius: 'var(--radius-full)', whiteSpace: 'nowrap', borderColor: '#10b981', color: '#10b981' }}
+            style={{ flexShrink: 0, borderRadius: 'var(--radius-full)', whiteSpace: 'nowrap', borderColor: '#3B82F6', color: '#3B82F6' }}
             onClick={() => handleAllLights('on')}
           >
             <Power size={15} /> All Lights ON

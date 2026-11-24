@@ -115,7 +115,7 @@ export const SPATIAL_MODES: Record<SpatialModeId, SpatialModeConfig> = {
     badgeBg: 'rgba(16, 185, 129, 0.16)',
     canvasBg: '#050A07',
     meshOrbs: [
-      { x: '50%', y: '30%', size: '620px', color: '#059669', opacity: 0.22, scale: 1.0 },
+      { x: '50%', y: '30%', size: '620px', color: '#2563EB', opacity: 0.22, scale: 1.0 },
       { x: '-5%', y: '80%', size: '480px', color: '#10B981', opacity: 0.18, scale: 0.9 },
       { x: '75%', y: '-10%', size: '440px', color: '#34D399', opacity: 0.12, scale: 0.8 },
     ],

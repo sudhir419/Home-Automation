@@ -273,8 +273,8 @@ export default function BluetoothPage() {
               width: '100%',
               maxWidth: 280,
               borderRadius: 'var(--radius-full)',
-              background: '#10b981',
-              borderColor: '#10b981',
+              background: '#3B82F6',
+              borderColor: '#3B82F6',
             }}
           >
             <RefreshCw
@@ -348,7 +348,7 @@ export default function BluetoothPage() {
                     width: 38,
                     height: 38,
                     borderRadius: '50%',
-                    background: 'rgba(16,185,129,0.12)',
+                    background: 'rgba(59,130,246,0.12)',
                     color: 'var(--color-accent)',
                     display: 'flex',
                     alignItems: 'center',

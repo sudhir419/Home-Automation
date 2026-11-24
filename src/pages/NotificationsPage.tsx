@@ -30,7 +30,7 @@ function getLevelIcon(level: ActivityLevel): React.ElementType {
 
 function getLevelColor(level: ActivityLevel): string {
   switch (level) {
-    case 'success': return '#10b981';
+    case 'success': return '#3B82F6';
     case 'warning': return '#f59e0b';
     case 'error': return '#ef4444';
     default: return '#3b82f6';
@@ -96,9 +96,9 @@ export default function NotificationsPage() {
               style={{
                 display: 'flex', alignItems: 'center', gap: 5,
                 padding: '6px 12px', borderRadius: 20, border: '1px solid',
-                borderColor: isActive ? '#10b981' : 'var(--color-border)',
-                background: isActive ? 'rgba(16,185,129,0.12)' : 'var(--color-surface)',
-                color: isActive ? '#10b981' : 'var(--color-text-secondary)',
+                borderColor: isActive ? '#3B82F6' : 'var(--color-border)',
+                background: isActive ? 'rgba(59,130,246,0.12)' : 'var(--color-surface)',
+                color: isActive ? '#3B82F6' : 'var(--color-text-secondary)',
                 fontSize: 13, fontWeight: isActive ? 600 : 400,
                 cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0,
                 transition: 'all 150ms ease',
@@ -181,7 +181,7 @@ export default function NotificationsPage() {
                     {ev.isHardwareConfirmed && (
                       <span style={{
                         fontSize: 10, fontWeight: 600, padding: '1px 7px', borderRadius: 10,
-                        background: 'rgba(16,185,129,0.12)', color: '#10b981',
+                        background: 'rgba(59,130,246,0.12)', color: '#3B82F6',
                       }}>
                         HW ✓
                       </span>

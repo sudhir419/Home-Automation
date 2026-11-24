@@ -89,13 +89,7 @@ export default function IntroScreen({ onDone }: Props) {
             </div>
           </div>
 
-          {/* Subtitle */}
-          <p
-            className="intro-subtitle"
-            style={{ animation: 'card-appear 0.4s 0.5s both', marginTop: 12 }}
-          >
-            Smart Living &middot; Simple Control
-          </p>
+          {/* Subtitle removed per user request */}
         </div>
 
         {/* CTA button — Positioned at BOTTOM-CENTER of landing screen */}
@@ -124,8 +118,8 @@ export default function IntroScreen({ onDone }: Props) {
               alignItems: 'center',
               justifyContent: 'center',
               gap: 8,
-              background: '#10b981',
-              borderColor: '#10b981',
+              background: '#3B82F6',
+              borderColor: '#3B82F6',
               color: '#ffffff',
             }}
             aria-label="Enter the residence dashboard"

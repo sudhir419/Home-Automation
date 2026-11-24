@@ -188,8 +188,8 @@ export default function AppShell({ children, onOpen3D }: ShellProps) {
                     fontSize: '10px',
                     padding: '1px 6px',
                     borderRadius: 'var(--radius-full)',
-                    background: 'rgba(16,185,129,0.15)',
-                    color: '#10b981',
+                    background: 'rgba(59,130,246,0.15)',
+                    color: '#3B82F6',
                     fontWeight: 600,
                     letterSpacing: '0.03em',
                   }}
@@ -404,21 +404,27 @@ export default function AppShell({ children, onOpen3D }: ShellProps) {
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 12,
+                    gap: 14,
                     width: '100%',
-                    padding: '12px 16px',
-                    background: 'rgba(16,185,129,0.12)',
+                    padding: '10px 14px',
+                    background: 'transparent',
                     border: 'none',
                     borderBottom: '1px solid var(--color-border)',
-                    color: '#10b981',
+                    color: 'var(--color-text-primary)',
                     fontSize: 14,
-                    fontWeight: 700,
+                    fontWeight: 600,
                     cursor: 'pointer',
                     textAlign: 'left',
                     transition: 'background 100ms',
                   }}
                 >
-                  <Download size={18} style={{ color: '#10b981', flexShrink: 0 }} />
+                  <span style={{
+                    width: 40, height: 40, borderRadius: 12,
+                    background: 'rgba(59,130,246,0.14)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                  }}>
+                    <Download size={18} style={{ color: '#3B82F6' }} />
+                  </span>
                   <span>Install App</span>
                 </button>
 
@@ -431,20 +437,27 @@ export default function AppShell({ children, onOpen3D }: ShellProps) {
                       to={item.to}
                       onClick={() => setOverflowOpen(false)}
                       style={{
-                        display: 'flex', alignItems: 'center', gap: 12,
-                        padding: '12px 16px',
+                        display: 'flex', alignItems: 'center', gap: 14,
+                        padding: '10px 14px',
                         textDecoration: 'none',
-                        color: isActive ? '#10b981' : 'var(--color-text-primary)',
-                        background: isActive ? 'rgba(16,185,129,0.08)' : 'transparent',
+                        color: 'var(--color-text-primary)',
+                        background: isActive ? 'rgba(59,130,246,0.07)' : 'transparent',
                         fontSize: 14, fontWeight: isActive ? 600 : 400,
                         transition: 'background 100ms',
                       }}
                     >
-                      <Icon size={17} style={{ color: isActive ? '#10b981' : 'var(--color-text-secondary)', flexShrink: 0 }} />
-                      {item.label}
+                      <span style={{
+                        width: 40, height: 40, borderRadius: 12,
+                        background: isActive ? 'rgba(59,130,246,0.18)' : 'rgba(255,255,255,0.06)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                        border: isActive ? '1px solid rgba(59,130,246,0.3)' : '1px solid rgba(255,255,255,0.06)',
+                      }}>
+                        <Icon size={18} style={{ color: isActive ? '#3B82F6' : 'var(--color-text-secondary)' }} />
+                      </span>
+                      <span style={{ flex: 1 }}>{item.label}</span>
                       {item.to === '/notifications' && unreadCount > 0 && (
                         <span style={{
-                          marginLeft: 'auto', background: '#ef4444', color: '#fff',
+                          background: '#ef4444', color: '#fff',
                           borderRadius: 10, fontSize: 10, fontWeight: 700,
                           padding: '1px 6px', minWidth: 18, textAlign: 'center',
                         }}>
@@ -500,8 +513,8 @@ export default function AppShell({ children, onOpen3D }: ShellProps) {
             height: 'calc(100% - 12px)',
             borderRadius: 22,
             background: isDark
-              ? 'rgba(16,185,129,0.15)'
-              : 'rgba(16,185,129,0.12)',
+              ? 'rgba(59,130,246,0.15)'
+              : 'rgba(59,130,246,0.12)',
             pointerEvents: 'none',
             transition: 'transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1), width 300ms cubic-bezier(0.34, 1.56, 0.64, 1)',
             willChange: 'transform, width',
@@ -533,7 +546,7 @@ export default function AppShell({ children, onOpen3D }: ShellProps) {
                 padding: '4px 12px',
                 borderRadius: 20,
                 textDecoration: 'none',
-                color: isActive ? '#10b981' : 'var(--color-text-secondary)',
+                color: isActive ? '#3B82F6' : 'var(--color-text-secondary)',
                 transition: 'color 200ms ease',
                 minWidth: 48,
                 position: 'relative',
@@ -547,7 +560,7 @@ export default function AppShell({ children, onOpen3D }: ShellProps) {
                     size={21}
                     aria-hidden="true"
                     style={{
-                      color: isActive ? '#10b981' : 'var(--color-text-secondary)',
+                      color: isActive ? '#3B82F6' : 'var(--color-text-secondary)',
                       transition: 'color 200ms ease',
                     }}
                   />
@@ -556,7 +569,7 @@ export default function AppShell({ children, onOpen3D }: ShellProps) {
                       fontSize: 10,
                       fontWeight: isActive ? 700 : 500,
                       lineHeight: 1,
-                      color: isActive ? '#10b981' : 'var(--color-text-secondary)',
+                      color: isActive ? '#3B82F6' : 'var(--color-text-secondary)',
                       transition: 'color 200ms ease, font-weight 200ms ease',
                     }}
                   >

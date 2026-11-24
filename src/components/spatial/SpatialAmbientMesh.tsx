@@ -110,8 +110,8 @@ export const SpatialAmbientMesh = memo(function SpatialAmbientMesh({ activeMode 
               marginLeft: '-200px',
               marginTop: '-200px',
               borderRadius: '50%',
-              border: '2px solid rgba(16, 185, 129, 0.45)',
-              boxShadow: '0 0 40px rgba(16, 185, 129, 0.25)',
+              border: '2px solid rgba(59, 130, 246, 0.45)',
+              boxShadow: '0 0 40px rgba(59, 130, 246, 0.25)',
               pointerEvents: 'none',
             }}
           />

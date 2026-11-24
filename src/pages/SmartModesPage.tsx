@@ -24,7 +24,7 @@ const MODES: SmartMode[] = [
     name: 'Home',
     icon: Home,
     description: 'Comfortable settings for when everyone is home.',
-    color: '#10b981',
+    color: '#3B82F6',
     actions: [
       { label: 'Lights', detail: 'Living room ON, bedrooms dimmed' },
       { label: 'Climate', detail: 'Fan ON in living room' },
@@ -155,14 +155,14 @@ export default function SmartModesPage() {
             gap: 10,
             padding: '12px 16px',
             borderRadius: 14,
-            background: 'rgba(16,185,129,0.12)',
-            border: '1px solid rgba(16,185,129,0.25)',
+            background: 'rgba(59,130,246,0.12)',
+            border: '1px solid rgba(59,130,246,0.25)',
             marginBottom: 20,
           }}
         >
-          <Star size={16} style={{ color: '#10b981' }} />
+          <Star size={16} style={{ color: '#3B82F6' }} />
           <span style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-primary)', fontWeight: 500 }}>
-            Active: <strong style={{ color: '#10b981' }}>
+            Active: <strong style={{ color: '#3B82F6' }}>
               {MODES.find((m) => m.id === activeMode)?.name ?? activeMode} Mode
             </strong>
           </span>
